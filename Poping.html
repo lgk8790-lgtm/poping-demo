@@ -1,0 +1,1383 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Poping</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+/* Color roles. Orange = the one action you came to this screen for (one per screen).
+   Lime = confirmed or live (you're in, live now, checked in). Lilac = your people (friends going, private invites).
+   Pink = urgent (sold out, few left, cancelled). Event-type colors appear only on event content (flyers, type dots).
+   Everything else is ink and paper. */
+/* Layout: one phone-width column; every event's flyer carries the color, the app stays quiet.
+   Two looks: day (cream, ink outlines) and night (near-black). Auto picks by local time; Profile can pin one. */
+:root{
+  --night:#0F0D0C; --smoke:#1B1817; --smoke2:#2A2522; --line:#3A3430; --ash:#A8A096; --paper:#F6F0E4; --paper2:#E6DFD2;
+  --pop:#FF5B1F; --lime:#D4FF3A; --pink:#FF5FA8; --lilac:#B9A6FF; --sky:#7CCBFF; --sun:#FFC93C; --peach:#FF8A55; --ok:#1E6B3A; --err:#B3261E;
+  --display:"Archivo","Arial Narrow",Impact,sans-serif; --body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --bg:var(--night); --fg:var(--paper); --fg2:#E2DBD0; --shadow:var(--paper); --navbg:rgba(15,13,12,.96); --focus:var(--lime);
+  --t-lime:var(--lime); --t-lilac:var(--lilac); --t-pink:var(--pink); --t-peach:var(--peach); --t-pop:var(--pop);
+  color-scheme:dark;
+}
+:root[data-theme="day"]{
+  --bg:#F6F0E4; --fg:#0F0D0C; --fg2:#3A3430; --smoke:#FFFDF8; --smoke2:#E4DCCD; --line:#CDC4B4; --ash:#635C53; --shadow:#0F0D0C; --navbg:rgba(246,240,228,.96); --focus:#0F0D0C;
+  --t-lime:#3D7A0A; --t-lilac:#5B3FD0; --t-pink:#C2206A; --t-peach:#B5440D; --t-pop:#D2410A;
+  color-scheme:light;
+}
+:root[data-theme="day"] :is(.listrow,.card,.stat,.info div,details.faq){box-shadow:inset 0 0 0 1.5px var(--night)}
+html,body{background:var(--bg);color:var(--fg);transition:background .4s}
+body{font-family:var(--body);font-size:15px;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+*{box-sizing:border-box}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--t-pop)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.app{max-width:440px;margin:0 auto;min-height:100vh;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 110px;display:flex;flex-direction:column;gap:14px}
+.d{font-family:var(--display);font-weight:900;font-stretch:62%;text-transform:uppercase;letter-spacing:-.5px;line-height:.86;text-wrap:balance}
+.dw{font-family:var(--display);font-weight:900;font-stretch:75%}
+.muted{color:var(--ash)} .small{font-size:12px}
+.label{font-size:12px;font-weight:800;letter-spacing:1.2px;color:var(--ash);text-transform:uppercase}
+.row{display:flex;align-items:center;gap:10px}
+.between{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.col{display:flex;flex-direction:column;gap:10px}
+.grow{flex:1;min-width:0}
+.logo{font-family:var(--display);font-weight:900;font-stretch:62%;font-size:30px;letter-spacing:-.5px}
+.logo b{color:var(--pop)}
+.iconbtn{width:44px;height:44px;border-radius:22px;border:1px solid var(--line);background:transparent;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;position:relative;flex:none;color:var(--fg);text-decoration:none}
+.iconbtn .dot{position:absolute;right:8px;top:8px;width:9px;height:9px;border-radius:5px;background:var(--pop)}
+.pill{height:38px;padding:0 14px;border-radius:99px;border:1px solid var(--line);background:transparent;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex:none;display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--fg)}
+.pill.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.pill .sw{width:10px;height:10px;border-radius:5px;border:1px solid var(--night)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.btn{height:56px;border-radius:18px;border:2px solid var(--night);background:var(--pop);color:var(--night);font-family:var(--display);font-weight:900;font-stretch:75%;font-size:21px;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;box-shadow:0 4px 0 var(--shadow);text-decoration:none;width:100%;transition:transform .12s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--shadow)}
+.btn.lime{background:var(--lime)} .btn.lilac{background:var(--lilac)} .btn.paper{background:var(--paper)} .btn.dark{background:var(--night);color:var(--paper);box-shadow:0 4px 0 var(--pop);border-color:var(--night)}
+.btn[disabled]{background:var(--smoke2);color:#7A736A;box-shadow:none;cursor:not-allowed}
+.btn2{min-height:48px;border-radius:14px;border:1px solid var(--line);background:transparent;font-weight:800;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;text-decoration:none;color:var(--fg);padding:0 12px}
+.btn2.solid{background:var(--pop);color:var(--night);border:2px solid var(--night)}
+.btn2.paper{background:var(--paper);color:var(--night);border:2px solid var(--night)}
+.card{background:var(--smoke);border-radius:20px;padding:14px}
+.sticker{display:inline-block;border:2px solid var(--night);border-radius:8px;padding:3px 8px;font-size:11px;font-weight:800;letter-spacing:.6px;color:var(--night);white-space:nowrap}
+.field{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--ash);font-weight:600}
+.input{height:50px;border-radius:14px;border:1px solid var(--line);background:var(--smoke);color:var(--fg);padding:0 14px;font-size:15px;font-weight:600;width:100%;min-width:0}
+textarea.input{height:auto;min-height:84px;padding:12px 14px;resize:vertical}
+select.input{appearance:none}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.stat{background:var(--smoke);border-radius:16px;padding:12px}
+.stat .n{font-family:var(--display);font-weight:900;font-stretch:62%;font-size:34px;line-height:1}
+.seg{display:flex;gap:4px;background:var(--smoke);border-radius:14px;padding:4px}
+.seg button{flex:1;min-height:44px;border-radius:10px;border:none;background:transparent;color:var(--ash);font-weight:800;font-size:13px;cursor:pointer}
+.seg button.on{background:var(--fg);color:var(--bg)}
+.flyer{position:relative;overflow:hidden;border:2px solid var(--night);color:var(--night);display:block;text-decoration:none}
+.flyer .art{position:absolute;left:14px;bottom:14px;font-family:var(--display);font-weight:900;font-stretch:62%;line-height:.86;letter-spacing:-1px;white-space:pre-line;text-transform:uppercase}
+.flyer .deco1,.flyer .deco2{position:absolute}
+.thumb{flex:none;width:60px;height:60px;border-radius:14px;border:2px solid var(--night);color:var(--night);font-family:var(--display);font-weight:900;font-stretch:62%;font-size:16px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:.9;overflow:hidden}
+.listrow{display:flex;gap:12px;align-items:center;background:var(--smoke);border-radius:18px;padding:10px;color:var(--fg);text-decoration:none;cursor:pointer;border:none;width:100%;text-align:left}
+.when{font-size:11px;font-weight:800;color:var(--t-peach);letter-spacing:.4px;text-transform:uppercase}
+.faces{display:flex}
+.faces img,.faces span{width:22px;height:22px;border-radius:50%;border:2px solid var(--smoke);margin-left:-7px;object-fit:cover;flex:none}
+.faces img:first-child,.faces span:first-child{margin-left:0}
+.stack{position:relative;height:330px}
+.stack .back{position:absolute;inset:8px 8px auto 8px;height:300px;border-radius:22px;border:2px solid var(--night)}
+.stack .top{position:absolute;inset:8px 8px auto 8px;height:300px;border-radius:22px;box-shadow:0 6px 0 var(--night);transition:transform .25s cubic-bezier(.2,1.4,.4,1)}
+.stack .top:hover{transform:rotate(-1deg) translateY(-2px)}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--navbg);border-top:1px solid var(--smoke2);padding:6px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));backdrop-filter:blur(8px)}
+.nav .in{max-width:440px;margin:0 auto;display:flex;justify-content:space-around}
+.nav a{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:700;color:var(--ash);min-width:64px;padding:6px 0;text-decoration:none;position:relative}
+.nav a.on{color:var(--t-pop)}
+.nav a .badge{position:absolute;top:2px;right:16px;min-width:16px;height:16px;border-radius:8px;background:var(--pop);color:var(--night);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.scrim{position:fixed;inset:0;background:rgba(15,13,12,.7);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:440px;background:var(--paper);color:var(--night);border-radius:28px 28px 0 0;border-top:2px solid var(--night);padding:10px max(20px,env(safe-area-inset-right,0px)) calc(22px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:12px;max-height:92vh;overflow-y:auto;animation:up .25s ease-out}
+@keyframes up{0%{transform:translateY(110%)}70%{transform:translateY(-6px)}100%{transform:none}}
+/* ---- motion: springy, short, never in the way; all of it switches off under reduced motion ---- */
+@keyframes rise{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes drop{0%{opacity:0;transform:translateY(-60%) rotate(-8deg)}60%{opacity:1;transform:translateY(6%) rotate(2deg)}100%{transform:none}}
+@keyframes deal{0%{opacity:0;transform:translateY(30px) rotate(-6deg) scale(.92)}70%{transform:translateY(-4px) rotate(1deg) scale(1.01)}100%{opacity:1;transform:none}}
+@keyframes wob{0%,100%{transform:rotate(6deg)}50%{transform:rotate(-3deg) scale(1.06)}}
+@keyframes wob2{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(2deg)}}
+@keyframes pop{0%{transform:translateX(-50%) scale(.6);opacity:0}70%{transform:translateX(-50%) scale(1.06)}100%{transform:translateX(-50%) scale(1);opacity:1}}
+@keyframes heartpop{0%{transform:scale(1)}40%{transform:scale(1.45) rotate(-12deg)}100%{transform:scale(1)}}
+@keyframes spark{to{transform:translate(var(--dx),var(--dy)) scale(.2) rotate(var(--r));opacity:0}}
+@keyframes tick{to{transform:translateX(-50%)}}
+@keyframes pulse2{0%{box-shadow:0 0 0 0 rgba(212,255,58,.7)}100%{box-shadow:0 0 0 10px rgba(212,255,58,0)}}
+@keyframes holo{0%{transform:translateX(-120%) skewX(-20deg)}100%{transform:translateX(220%) skewX(-20deg)}}
+@keyframes bigin{0%{transform:scale(.3) rotate(-10deg);opacity:0}60%{transform:scale(1.08) rotate(2deg);opacity:1}100%{transform:none}}
+@keyframes navbump{0%{transform:scale(1)}40%{transform:scale(1.25) translateY(-3px)}100%{transform:none}}
+@keyframes shim{0%{background-position:-200px 0}100%{background-position:calc(200px + 100%) 0}}
+.app.enter>*{animation:rise .5s cubic-bezier(.2,.9,.3,1.15) both}
+.app.enter>*:nth-child(2){animation-delay:.04s}.app.enter>*:nth-child(3){animation-delay:.08s}.app.enter>*:nth-child(4){animation-delay:.12s}
+.app.enter>*:nth-child(5){animation-delay:.16s}.app.enter>*:nth-child(6){animation-delay:.2s}.app.enter>*:nth-child(7){animation-delay:.24s}
+.app.enter>*:nth-child(n+8){animation-delay:.28s}
+.app.enter .dropin span{display:inline-block;animation:drop .55s cubic-bezier(.2,.9,.3,1.3) both;animation-delay:calc(var(--k) * 45ms + .05s)}
+.stack .top.dealt{animation:deal .45s cubic-bezier(.2,.9,.3,1.2) both}
+.stack .top{touch-action:pan-y;cursor:grab;will-change:transform}
+.stack .top a,.stack .top img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none}
+.stack .top.dragging{transition:none!important;cursor:grabbing}
+.stack .top.fly{transition:transform .32s cubic-bezier(.5,0,.75,0),opacity .32s!important}
+.stack .back{transition:transform .3s cubic-bezier(.2,.9,.3,1.2)}
+.stack .stamp{position:absolute;top:70px;z-index:3;font-family:var(--display);font-weight:900;font-stretch:75%;font-size:30px;padding:4px 12px;border:3px solid var(--night);border-radius:12px;opacity:0;pointer-events:none;text-transform:uppercase}
+.stack .stamp.yes{left:22px;background:var(--pink);transform:rotate(-12deg)}
+.stack .stamp.no{right:22px;background:var(--paper);transform:rotate(12deg)}
+.sticker.wob{animation:wob 2.8s ease-in-out infinite}
+.sticker.wob2{animation:wob2 3.4s ease-in-out infinite}
+.ticker{overflow:hidden;border-block:2px solid var(--night);background:var(--lime);color:var(--night);margin:0 -16px;white-space:nowrap}
+.ticker .tk{display:inline-flex;gap:28px;padding:8px 0;animation:tick 26s linear infinite;font-family:var(--display);font-weight:900;font-stretch:75%;font-size:16px;text-transform:uppercase}
+.ticker .tk span{display:inline-flex;align-items:center;gap:28px}
+.ticker .tk span::after{content:"";width:10px;height:10px;background:var(--night);clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)}
+.livedot{width:8px;height:8px;border-radius:4px;background:var(--lime);animation:pulse2 1.4s ease-out infinite;flex:none}
+.heartbtn svg{transition:transform .2s}.heartbtn.popd svg{animation:heartpop .45s cubic-bezier(.2,.9,.3,1.4)}
+.spk{position:fixed;width:10px;height:10px;border-radius:3px;z-index:70;pointer-events:none;animation:spark .7s cubic-bezier(.2,.7,.3,1) forwards}
+.holo{position:relative;overflow:hidden}
+.holo::after{content:"";position:absolute;inset:0 auto 0 0;width:40%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:holo 3.2s ease-in-out infinite 1s;pointer-events:none}
+.yaybig{animation:bigin .7s cubic-bezier(.2,.9,.3,1.3) both .15s}
+.nav a.on svg{animation:navbump .4s cubic-bezier(.2,.9,.3,1.4)}
+.nav a.on::before{content:"";position:absolute;top:-7px;left:50%;width:22px;height:4px;margin-left:-11px;border-radius:0 0 4px 4px;background:var(--pop)}
+.pill,.seg button,.iconbtn,.btn2,.listrow,.qtybtn{transition:transform .15s cubic-bezier(.2,.9,.3,1.4),background .2s,color .2s}
+.pill:active,.seg button:active,.iconbtn:active,.btn2:active,.qtybtn:active{transform:scale(.93)}
+.listrow:active{transform:scale(.98)}
+.btn:hover{transform:translateY(-2px) rotate(-.6deg)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--shadow)}
+.skel{background:linear-gradient(90deg,var(--smoke) 0,var(--smoke2) 50%,var(--smoke) 100%) 0 0/200px 100% no-repeat,var(--smoke);animation:shim 1.2s linear infinite}
+.hint{font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--ash);display:flex;justify-content:space-between}
+.sheet .grab{width:40px;height:4px;border-radius:2px;background:#C9C0B3;align-self:center}
+.sheet .muted{color:#5E5850}
+.sheet .input{background:#fff;color:var(--night);border:2px solid var(--night)}
+.qtybtn{width:44px;height:44px;border-radius:22px;border:2px solid var(--night);background:#fff;font-size:20px;font-weight:700;cursor:pointer;color:var(--night)}
+.qtybtn.plus{background:var(--night);color:var(--paper)}
+.qtybtn[disabled]{opacity:.4;cursor:not-allowed}
+.toast{animation:pop .35s cubic-bezier(.2,1.6,.4,1);position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--lime);color:var(--night);border:2px solid var(--night);border-radius:14px;padding:10px 16px;font-weight:800;font-size:14px;z-index:60;box-shadow:0 4px 0 var(--shadow);max-width:90vw}
+.notice{background:var(--smoke);border:1px dashed var(--line);border-radius:14px;padding:10px 12px;font-size:12px;color:var(--ash);line-height:1.45}
+.skel{background:var(--smoke);border-radius:18px;height:70px;animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.5}}
+.qrbox{background:#fff;border:2px solid var(--night);border-radius:14px;padding:10px;width:230px;height:230px;display:flex;align-items:center;justify-content:center}
+.tick{height:6px;border-radius:3px;background:#E0D9CD;overflow:hidden;width:210px}
+.tick i{display:block;height:6px;background:var(--pop);transition:width 1s linear}
+.bar{height:10px;border-radius:5px;background:var(--smoke2);overflow:hidden}
+.bar i{display:block;height:10px;background:var(--pop)}
+details.faq{background:var(--smoke);border-radius:16px;padding:14px}
+details.faq summary{font-weight:800;cursor:pointer;list-style:none}
+details.faq p{margin:10px 0 0;color:var(--fg2);line-height:1.5;font-size:14px}
+.info{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.info div{background:var(--smoke);border-radius:14px;padding:10px 12px;font-size:13px;line-height:1.35}
+.info b{display:block;font-size:11px;color:var(--ash);letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px}
+.flyer .ban{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.flyer .shade{position:absolute;inset:auto 0 0 0;height:60%;background:linear-gradient(transparent,rgba(15,13,12,.78))}
+.flyer .bname{position:absolute;left:14px;bottom:14px;max-width:58%;color:#F6F0E4;font-family:var(--display);font-weight:900;font-stretch:75%;text-transform:uppercase;line-height:.95;text-wrap:balance}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.sr{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+.upl:focus-within{outline:3px solid var(--focus);outline-offset:2px}
+details.extras{border-radius:20px;border:1px solid var(--line)}
+details.extras>summary{list-style:none;cursor:pointer;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:800}
+details.extras>summary::-webkit-details-marker{display:none}
+details.extras[open]>summary .chev{transform:rotate(180deg)}
+details.extras .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:10px}
+.step{display:flex;align-items:center;gap:10px;margin-top:10px}
+.step i{font-style:normal;width:26px;height:26px;border-radius:13px;background:var(--fg);color:var(--bg);font-size:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.step b{font-size:13px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase}
+.appicon{width:104px;height:104px;border-radius:26px;background:var(--pop);border:2px solid var(--night);box-shadow:0 5px 0 var(--shadow);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;font-stretch:62%;font-size:30px;color:var(--night);flex:none;transform:rotate(-4deg)}
+.appicon b{color:var(--paper)}
+.ring{width:38px;height:38px}
+.shots{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;padding:4px 2px 10px}
+.shots::-webkit-scrollbar{display:none}
+.shot{flex:none;width:150px;border:2px solid var(--night);border-radius:22px;overflow:hidden;background:var(--smoke);box-shadow:0 4px 0 var(--shadow)}
+.shot .cap{padding:8px 10px;font-family:var(--display);font-weight:900;font-stretch:75%;font-size:15px;line-height:1;text-transform:uppercase}
+.splash{position:fixed;inset:0;z-index:90;background:var(--pop);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+.splash .lg{font-family:var(--display);font-weight:900;font-stretch:62%;font-size:110px;color:var(--night);animation:bigin .8s cubic-bezier(.2,.9,.3,1.4) both}
+.splash .lg b{color:var(--paper)}
+.splash .sub{font-weight:800;color:var(--night);animation:rise .5s .5s both}
+.otp{height:72px;font-family:var(--display);font-weight:900;font-stretch:75%;font-size:40px;letter-spacing:14px;text-align:center}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.shake{animation:shake .4s}
+.push{position:fixed;left:50%;top:calc(10px + env(safe-area-inset-top,0px));transform:translateX(-50%);width:min(420px,calc(100vw - 20px));z-index:85;background:rgba(27,24,23,.96);color:#F6F0E4;border:1px solid #3A3430;border-radius:20px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;text-align:left;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.35);animation:pushin .45s cubic-bezier(.2,.9,.3,1.25)}
+@keyframes pushin{from{transform:translate(-50%,-140%)}to{transform:translate(-50%,0)}}
+.push .pi{width:36px;height:36px;border-radius:10px;background:var(--pop);border:1.5px solid #0F0D0C;flex:none;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;font-stretch:62%;font-size:13px;color:#0F0D0C}
+.dlgwrap{position:fixed;inset:0;z-index:88;background:rgba(15,13,12,.6);display:flex;align-items:center;justify-content:center;padding:24px}
+.dlg{width:min(320px,100%);background:var(--paper);color:var(--night);border:2px solid var(--night);border-radius:24px;padding:20px;display:flex;flex-direction:column;gap:12px;text-align:center;animation:bigin .35s cubic-bezier(.2,.9,.3,1.3)}
+.scanbox{position:relative;width:240px;height:240px;margin:6px auto;border-radius:28px;background:#1B1817;overflow:hidden}
+.scanbox::before{content:"";position:absolute;inset:26px;border:4px solid #D4FF3A;border-radius:18px;clip-path:polygon(0 0,30% 0,30% 6%,6% 6%,6% 30%,0 30%,0 70%,6% 70%,6% 94%,30% 94%,30% 100%,70% 100%,70% 94%,94% 94%,94% 70%,100% 70%,100% 30%,94% 30%,94% 6%,70% 6%,70% 0,100% 0,100% 100%,0 100%)}
+.scanbox i{position:absolute;left:30px;right:30px;height:3px;background:#D4FF3A;box-shadow:0 0 18px #D4FF3A;animation:scanl 1.3s ease-in-out infinite alternate}
+@keyframes scanl{from{top:34px}to{top:203px}}
+.instamp{position:absolute;inset:auto 0 50% 0;margin:auto;transform:translateY(50%) rotate(-12deg);width:max-content;background:var(--lime);border:3px solid var(--night);border-radius:12px;padding:6px 14px;font-family:var(--display);font-weight:900;font-stretch:75%;font-size:28px;text-transform:uppercase;animation:bigin .5s cubic-bezier(.2,.9,.3,1.4) both}
+.step-row{display:flex;gap:10px;align-items:center;text-align:left;width:100%;background:#fff;border:2px solid var(--night);border-radius:14px;padding:10px 12px;cursor:pointer;color:var(--night);font-weight:700;font-size:14px}
+.step-row i{font-style:normal;width:26px;height:26px;border-radius:13px;background:var(--night);color:var(--paper);font-size:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.rate{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.rate button{height:76px;border-radius:16px;border:2px solid var(--night);background:var(--smoke);color:var(--fg);font-family:var(--display);font-weight:900;font-stretch:75%;font-size:15px;text-transform:uppercase;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.rate button b{font-size:26px}
+.rate button.on{background:var(--pop);color:var(--night);transform:rotate(-3deg) scale(1.05)}
+.sheet.still,.dlg.still{animation:none}
+canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:50}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<script>
+/* Standalone demo runtime: stands in for the Claude database + user capabilities.
+   Data lives in this browser's localStorage. Sample dates shift so "today" is always today. */
+(function(){
+  var KEY="poping.demo.v3", ME="u_demo", DAYMS=864e5, HR=36e5;
+  var SEED={"sample-warehouse-disco": {"name": "Warehouse Disco", "art": "WARE\nHOUSE\nDISCO", "type": "party", "sound": "Disco", "hostName": "Disco Collective", "hostId": "sample", "startsAt": "2026-11-05T22:00:00-05:00", "endsAt": "2026-11-06T03:00:00-05:00", "venue": "The Annex", "address": "Sample address", "area": "NoHo", "age": "21+", "price": 15, "capacity": 200, "color": "#7CCBFF", "deco": "ring", "public": true, "code": "", "lineup": "Resident DJs, disco and house edits", "listenUrl": "", "dress": "Anything goes", "door": "Last entry 1 AM", "blurb": "Sample event. Four hours of disco and house edits.", "status": "live", "sample": true, "createdAt": 1793862300000}, "sample-jazz-bleecker": {"name": "Jazz on Bleecker: Late Set", "art": "LATE\nSET\nJAZZ", "type": "music", "hostName": "Bleecker Sessions", "hostId": "sample", "startsAt": "2026-11-05T21:30:00-05:00", "endsAt": "2026-11-05T23:30:00-05:00", "venue": "The Cellar Room", "address": "Sample address", "area": "Greenwich Village", "age": "21+", "price": 15, "capacity": 70, "color": "#B9A6FF", "deco": "dot", "public": true, "code": "", "lineup": "NYU jazz alumni trio", "listenUrl": "", "dress": "", "door": "Seated, first come", "blurb": "Sample event. Two sets, one drink minimum at the bar.", "status": "live", "sample": true, "createdAt": 1793862300000}, "sample-afrobeats-basement": {"name": "Afrobeats Basement", "art": "AFRO\nBEATS\nBSMT", "type": "party", "sound": "Afrobeats", "hostName": "Lagos to Brooklyn", "hostId": "sample", "startsAt": "2026-11-05T23:00:00-05:00", "endsAt": "2026-11-06T04:00:00-05:00", "venue": "Basement on Bleecker", "address": "Sample address", "area": "Greenwich Village", "age": "21+", "price": 12, "capacity": 150, "color": "#FFC93C", "deco": "star", "public": true, "code": "", "lineup": "Afrobeats and amapiano selectors", "listenUrl": "", "dress": "", "door": "Last entry 2 AM", "blurb": "Sample event. Afrobeats and amapiano till close.", "status": "live", "sample": true, "createdAt": 1793862300000}, "sample-paper-moons": {"name": "Paper Moons: group show", "art": "PAPER\nMOONS", "type": "art", "hostName": "Gallery 291", "hostId": "sample", "startsAt": "2026-11-01T12:00:00-05:00", "endsAt": "2026-11-22T18:00:00-05:00", "hours": "Wed\u2013Sun, 11 AM\u20136 PM", "venue": "Gallery 291", "address": "Sample address", "area": "Lower East Side", "age": "All ages", "price": 0, "capacity": 400, "color": "#F6F0E4", "deco": "stripe", "public": true, "code": "", "lineup": "Six emerging NYC illustrators", "listenUrl": "", "dress": "", "door": "Free entry, RSVP for the closing night", "blurb": "Sample event. Paper, print and zine work from six emerging illustrators.", "status": "live", "sample": true, "createdAt": 1793862300000}, "sample-basement-comedy": {"name": "Basement Comedy Hour", "art": "BSMT\nCOMEDY\nHOUR", "type": "comedy", "hostName": "Late Laughs NYC", "hostId": "sample", "startsAt": "2026-11-06T21:00:00-05:00", "endsAt": "2026-11-06T22:30:00-05:00", "venue": "Under Bleecker", "address": "Sample address", "area": "Greenwich Village", "age": "18+", "price": 10, "capacity": 60, "color": "#D4FF3A", "deco": "ring", "public": true, "code": "", "lineup": "Five up-and-coming comics plus a surprise headliner", "listenUrl": "", "dress": "", "door": "Doors 8:30 PM", "blurb": "Sample event. Tight sets, small room, no phones.", "status": "live", "sample": true, "createdAt": 1793862300000}, "sample-thrift-swap": {"name": "Thrift Swap Pop-up", "art": "THRIFT\nSWAP", "type": "popup", "hostName": "Second Spin", "hostId": "sample", "startsAt": "2026-11-07T12:00:00-05:00", "endsAt": "2026-11-07T18:00:00-05:00", "venue": "Ludlow Studio", "address": "Sample address", "area": "East Village", "age": "All ages", "price": 5, "capacity": 200, "color": "#FF5FA8", "deco": "stripe", "public": true, "code": "", "lineup": "", "listenUrl": "", "dress": "", "door": "Bring up to 5 pieces to swap", "blurb": "Sample event. Swap clothes, DJ in the corner, coffee pop-up.", "status": "live", "sample": true, "createdAt": 1793862300000}, "sample-diwali-garba": {"name": "Diwali Garba Night", "art": "DIWALI\nGARBA", "type": "culture", "hostName": "South Asian Collective NYC", "hostId": "sample", "startsAt": "2026-11-07T19:00:00-05:00", "endsAt": "2026-11-07T23:30:00-05:00", "venue": "Washington Hall", "address": "Sample address", "area": "Washington Square", "age": "All ages", "price": 12, "capacity": 250, "color": "#FFC93C", "deco": "dot", "public": true, "code": "", "lineup": "Live dhol, garba lessons at 7:30", "listenUrl": "", "dress": "Traditional wear encouraged", "door": "Doors 6:45 PM", "blurb": "Sample event. Garba, dandiya and food stalls.", "status": "live", "sample": true, "createdAt": 1793862300000}, "sample-deep-house": {"name": "Deep House Society", "art": "DEEP\nHOUSE\nSOC.", "type": "party", "sound": "House", "hostName": "Deep House Society", "hostId": "sample", "startsAt": "2026-11-07T23:00:00-05:00", "endsAt": "2026-11-08T04:00:00-05:00", "venue": "Room 9", "address": "Sample address", "area": "Lower East Side", "age": "21+", "price": 18, "capacity": 180, "color": "#7CCBFF", "deco": "dot", "public": true, "code": "", "lineup": "Soulful and deep, all night", "listenUrl": "", "dress": "", "door": "Last entry 2 AM", "blurb": "Sample event.", "status": "live", "sample": true, "createdAt": 1793862300000}, "sample-makers-market": {"name": "Union Square Makers Market", "art": "MAKERS\nMARKET", "type": "market", "hostName": "Downtown Makers", "hostId": "sample", "startsAt": "2026-11-08T11:00:00-05:00", "endsAt": "2026-11-08T17:00:00-05:00", "venue": "Union Square", "address": "Sample address", "area": "Union Square", "age": "All ages", "price": 0, "capacity": 1000, "color": "#FF8A55", "deco": "star", "public": true, "code": "", "lineup": "40 local makers, food trucks", "listenUrl": "", "dress": "", "door": "Free, RSVP for a tote", "blurb": "Sample event. Ceramics, prints, vintage and snacks.", "status": "live", "sample": true, "createdAt": 1793862300000}, "sample-rooftop-film": {"name": "Rooftop Film Night: NYC shorts", "art": "ROOFTOP\nFILM", "type": "culture", "hostName": "Shorts Club", "hostId": "sample", "startsAt": "2026-11-12T19:30:00-05:00", "endsAt": "2026-11-12T22:00:00-05:00", "venue": "Rooftop 14", "address": "Sample address", "area": "Union Square", "age": "18+", "price": 12, "capacity": 90, "color": "#B9A6FF", "deco": "ring", "public": true, "code": "", "lineup": "Eight student shorts, Q&A after", "listenUrl": "", "dress": "Bring a layer", "door": "Doors 7 PM", "blurb": "Sample event.", "status": "live", "sample": true, "createdAt": 1793862300000}, "sample-jess-25": {"name": "Jess turns 25", "art": "ROOFTOP\nBDAY", "type": "party", "sound": "Pop", "hostName": "Jess", "hostId": "sample", "startsAt": "2026-11-07T20:00:00-05:00", "endsAt": "2026-11-08T01:00:00-05:00", "venue": "Rooftop near Union Square", "address": "Sample address", "area": "Union Square", "age": "21+", "price": 10, "capacity": 60, "color": "#FF5FA8", "deco": "star", "public": false, "code": "JESS25", "lineup": "", "listenUrl": "", "dress": "Your best fit", "door": "", "blurb": "Sample private event. Bring a bottle.", "status": "live", "sample": true, "createdAt": 1793862300000}};
+  var BASE=new Date(2026,10,5).getTime(), t0=new Date(); t0.setHours(0,0,0,0); var SHIFT=t0.getTime()-BASE;
+  function sh(iso){ if(!iso) return iso; var t=new Date(iso).getTime(); return isNaN(t)?iso:new Date(t+SHIFT).toISOString(); }
+  function fresh(){
+    var NOW=Date.now(), st={events:{},tickets:{},profiles:{},waitlist:{},reports:{},banners:{},ratings:{},session:{}};
+    Object.keys(SEED).forEach(function(id){ var e=JSON.parse(JSON.stringify(SEED[id])); e.startsAt=sh(e.startsAt); e.endsAt=sh(e.endsAt); st.events[id]=e; });
+    st.events.e_mine={name:"Paper & Ink Pop-up",type:"popup",hostName:"Lakshmish",hostId:ME,startsAt:new Date(NOW-HR).toISOString(),endsAt:new Date(NOW+4*HR).toISOString(),venue:"Studio 5",address:"Sample address",area:"East Village",price:12,capacity:80,color:"#FF5FA8",deco:"stripe",public:true,code:"",status:"live",createdAt:NOW-9e8,age:"All ages",blurb:"Your sample event: open the Host tab to run the door."};
+    function T(id,o){ var b={status:"active",checkedIn:0,createdAt:NOW-1e6}; for(var k in o) b[k]=o[k]; st.tickets[id]=b; }
+    T("t_a",{eventId:"sample-warehouse-disco",holderId:"u_maya",qty:1,unit:15,total:15,via:"discover"});
+    T("t_b",{eventId:"sample-warehouse-disco",holderId:"u_jordan",qty:1,unit:15,total:15,via:"link"});
+    T("t_c",{eventId:"sample-diwali-garba",holderId:"u_maya",qty:2,unit:12,total:24,via:"discover"});
+    T("t_h1",{eventId:"e_mine",holderId:"u_maya",qty:2,unit:12,total:24,via:"discover",checkedIn:2});
+    T("t_h2",{eventId:"e_mine",holderId:"u_jordan",qty:1,unit:12,total:12,via:"search"});
+    T("t_h3",{eventId:"e_mine",holderId:"u_sam",qty:3,unit:12,total:36,via:"link"});
+    T("t_h4",{eventId:"e_mine",holderId:null,guestName:"DJ Nova",comp:true,qty:1,unit:0,total:0,via:"comp"});
+    ["u_maya","u_jordan","u_sam","u_priya"].forEach(function(u){ st.profiles[u]={onboarded:true,visibility:"everyone"}; });
+    return st;
+  }
+  var store; try{ store=JSON.parse(localStorage.getItem(KEY)); }catch(e){}
+  if(!store||!store.events) store=fresh();
+  ["events","tickets","profiles","waitlist","reports","banners","ratings"].forEach(function(c){ store[c]=store[c]||{}; });
+  function save(){ try{ localStorage.setItem(KEY,JSON.stringify(store)); }catch(e){} }
+  window.popingResetDemo=function(){ try{ localStorage.removeItem(KEY); }catch(e){} location.hash=""; location.reload(); };
+  var NAMES={u_demo:"Lakshmish Kamble",u_maya:"Maya Chen",u_jordan:"Jordan Reyes",u_sam:"Sam Okafor",u_priya:"Priya Shah"};
+  var COLS={u_demo:"#FF5FA8",u_maya:"#FFC93C",u_jordan:"#7CCBFF",u_sam:"#D4FF3A",u_priya:"#B9A6FF"};
+  var avc={};
+  function av(id){ if(avc[id]) return avc[id]; var c=document.createElement("canvas"); c.width=c.height=64; var x=c.getContext("2d"); x.fillStyle=COLS[id]||"#B9A6FF"; x.fillRect(0,0,64,64); x.fillStyle="#0F0D0C"; x.font="bold 30px sans-serif"; x.textAlign="center"; x.fillText((NAMES[id]||"?")[0],32,43); return (avc[id]=c.toDataURL()); }
+  var subs=[];
+  function snap(col){ return {docs:Object.keys(store[col]||{}).map(function(id){ return {id:id,exists:true,data:function(){ return store[col][id]; }}; })}; }
+  function notify(){ save(); setTimeout(function(){ subs.forEach(function(s){ s.fn(snap(s.col)); }); },0); }
+  function docRef(path){ var p=path.split("/"), col=p[0], id=p[1]; store[col]=store[col]||{};
+    return {id:id,path:path,
+      get:function(){ return Promise.resolve({id:id,exists:!!store[col][id],data:function(){ return store[col][id]; }}); },
+      set:function(d){ store[col][id]=JSON.parse(JSON.stringify(d)); notify(); return Promise.resolve(); },
+      update:function(d){ if(!store[col][id]) return Promise.reject(new Error("missing")); var o=JSON.parse(JSON.stringify(d)); for(var k in o) store[col][id][k]=o[k]; notify(); return Promise.resolve(); },
+      "delete":function(){ delete store[col][id]; notify(); return Promise.resolve(); }}; }
+  function colRef(col){ var q={limit:function(){return q;},where:function(){return q;},orderBy:function(){return q;},
+      onSnapshot:function(fn){ subs.push({col:col,fn:fn}); setTimeout(function(){ fn(snap(col)); },0); return function(){}; },
+      get:function(){ return Promise.resolve(snap(col)); },
+      doc:function(id){ return docRef(col+"/"+(id||("x"+Math.random().toString(36).slice(2)))); },
+      add:function(d){ var r=docRef(col+"/a"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)); return r.set(d).then(function(){ return r; }); }}; return q; }
+  var db={doc:docRef,collection:colRef};
+  function prof(id){ return {id:id,name:NAMES[id]||"",avatarUrl:av(id),color:COLS[id]||"#ccc",email:null,isMe:id===ME}; }
+  var user={
+    me:function(){ return Promise.resolve({id:ME,name:(store.session&&store.session.name)||"",avatarUrl:av(ME),color:COLS[ME],email:null,isOwner:true,canEdit:true}); },
+    id:function(){ return Promise.resolve(ME); },
+    profiles:function(ids){ var o={}; [].concat(ids).forEach(function(id){ o[id]=prof(id); if(id===ME) o[id].name=(store.session&&store.session.name)||""; }); return Promise.resolve(o); },
+    search:function(q){ q=String(q||"").toLowerCase(); return Promise.resolve(Object.keys(NAMES).filter(function(id){ return id!==ME && NAMES[id].toLowerCase().indexOf(q)>=0; }).map(prof)); },
+    isOwner:function(){ return Promise.resolve(true); }, canEdit:function(){ return Promise.resolve(true); }
+  };
+  window.POPING_RT={use:function(n){ return Promise.resolve(n==="db"?db:n==="user"?user:null); }};
+  window.POPING_DEMO={session:function(){ return store.session||{}; },setSession:function(p){ store.session=store.session||{}; for(var k in p) store.session[k]=p[k]; save(); }};
+})();
+</script><div id="demoBar" style="max-width:440px;margin:0 auto;padding:6px 16px 0;font:600 11px Inter,system-ui,sans-serif;color:#A8A096;display:flex;justify-content:space-between;align-items:center;gap:10px"><button onclick="window.popingDemoPanel&&popingDemoPanel()" style="font:800 11px Inter,system-ui,sans-serif;background:#FF5B1F;color:#0F0D0C;border:1.5px solid #0F0D0C;border-radius:99px;padding:5px 10px;cursor:pointer">Demo journey</button><span style="flex:1">Saved in this browser</span><button onclick="popingResetDemo()" style="font:700 11px Inter,system-ui,sans-serif;background:none;border:none;color:inherit;text-decoration:underline;cursor:pointer;padding:6px 0">Start over</button></div>
+<div id="app" class="app" aria-live="polite">
+  <div class="between"><div class="logo">poping<b>.</b></div></div>
+  <div class="d" style="font-size:64px">Today</div>
+  <div class="skel"></div><div class="skel"></div><div class="skel"></div>
+  <div class="muted small">Loading what's on Downtown…</div>
+</div>
+<nav class="nav" id="nav" aria-label="Main"></nav>
+<div id="layer"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+(() => {
+"use strict";
+const RT = window.POPING_RT || window.claude;
+const DEMO = window.POPING_DEMO || null;
+const AUTH = ["store","splash","signup","otp","about","friends","notifs"];
+/* ---------- constants ---------- */
+const TYPES = [
+  {k:"party",l:"Parties",c:"#7CCBFF",sub:"DJs, club nights, collectives"},
+  {k:"popup",l:"Pop-ups",c:"#FF5FA8",sub:"brands, food, drops"},
+  {k:"art",l:"Art & exhibitions",c:"#F6F0E4",sub:"galleries, openings, shows"},
+  {k:"culture",l:"Culture",c:"#FFC93C",sub:"cultural nights, film, talks"},
+  {k:"comedy",l:"Comedy",c:"#D4FF3A",sub:"stand-up, improv"},
+  {k:"music",l:"Live music",c:"#B9A6FF",sub:"bands, jazz, open mics"},
+  {k:"market",l:"Markets",c:"#FF8A55",sub:"vintage, makers, food"}
+];
+const SOUNDS = ["House","Afrobeats","Techno","Latin","Disco","Hip-hop","R&B","Pop"];
+const COLORS = ["#7CCBFF","#FFC93C","#FF5FA8","#B9A6FF","#D4FF3A","#FF8A55","#F6F0E4","#7BD389"];
+const DECOS = ["ring","star","stripe","dot"];
+const ALPH = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+const DAY = 864e5, HOUR = 36e5;
+const typeOf = (k) => TYPES.find(t=>t.k===k) || TYPES[0];
+
+/* ---------- state ---------- */
+const S = {
+  db:null, user:null, me:{id:null,name:""}, ok:false, failed:false,
+  events:[], tickets:[], profiles:{}, waits:[], banners:{}, names:{}, avatars:{}, theme:"night",
+  loaded:{events:false,tickets:false,profiles:false},
+  route:"discover", param:"", when:"today", type:"all", free:false, sound:"All", stack:0, q:"",
+  via:"link", sheet:null, onb:{step:0,types:[],vis:"everyone"},
+  form:null, editId:null, hostTab:"upcoming", toast:"", doorMsg:null, doorQ:"", myTab:"upcoming", skipOnb:false
+};
+
+/* ---------- helpers ---------- */
+const $ = (s) => document.querySelector(s);
+const esc = (v) => String(v == null ? "" : v).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const r2 = (n) => Math.round(n * 100) / 100;
+const money = (n) => "$" + (Number.isInteger(r2(n)) ? r2(n) : r2(n).toFixed(2));
+const money2 = (n) => "$" + r2(n).toFixed(2);
+const makeId = (p) => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+function fees(p){ if(!(p>0)) return {pop:0,card:0,keep:0}; const pop=r2(0.5+0.04*p), card=r2(0.029*p+0.30); return {pop,card,keep:r2(p-pop-card)}; }
+function hsh(str){ let h=2166136261>>>0; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619)>>>0; } return h>>>0; }
+function codeFor(tid,w){ const a=hsh(tid+":"+w), b=hsh(w+"/"+tid+"#"); let s=""; for(let i=0;i<6;i++){ const v=i<3?a:b; s+=ALPH[(v>>>(i%3*6))&31]; } return s; }
+const win = () => Math.floor(Date.now()/15000);
+function sod(t){ const d=new Date(t); d.setHours(0,0,0,0); return d.getTime(); }
+function sMs(ev){ const t=new Date(ev.startsAt).getTime(); return isNaN(t)?0:t; }
+function eMs(ev){ const t=ev.endsAt?new Date(ev.endsAt).getTime():NaN; return isNaN(t)? sMs(ev)+6*HOUR : t; }
+const multiDay = (ev) => eMs(ev)-sMs(ev) > 20*HOUR;
+const isCancelled = (ev) => ev.status==="cancelled";
+function isOver(ev){ return eMs(ev) < Date.now(); }
+function windowOf(when){
+  const now=Date.now(), today=sod(now);
+  if(when==="today") return [now, today+30*HOUR];
+  if(when==="weekend"){ const day=new Date(now).getDay(); const start=(day===5||day===6||day===0)? today-((day+2)%7)*DAY : today+(5-day)*DAY; return [Math.max(now,start), start+3*DAY+6*HOUR]; }
+  if(when==="week") return [now, today+8*DAY];
+  return [now, Infinity];
+}
+function inWhen(ev,when){ const [a,b]=windowOf(when); return sMs(ev)<b && eMs(ev)>a; }
+function tfmt(t){ const d=new Date(t); return d.toLocaleTimeString("en-US",{hour:"numeric",minute:d.getMinutes()?"2-digit":undefined}); }
+function dfmt(t){ return new Date(t).toLocaleDateString("en-US",{month:"short",day:"numeric"}); }
+function fmtWhen(ev){
+  const s=sMs(ev), e=eMs(ev), now=Date.now(), today=sod(now), ds=sod(s);
+  if(multiDay(ev)){ if(s<=now) return "Open now · until "+dfmt(e); return dfmt(s)+" – "+dfmt(e); }
+  const time=tfmt(s);
+  if(s<=now && e>now) return "Happening now · till "+tfmt(e);
+  if(ds===today) return (new Date(s).getHours()>=17?"Tonight":"Today")+" · "+time;
+  if(ds===today+DAY) return "Tomorrow · "+time;
+  if(ds<today+7*DAY && ds>today) return new Date(s).toLocaleDateString("en-US",{weekday:"short"})+" · "+time;
+  return dfmt(s)+" · "+time;
+}
+function artOf(ev){ if(ev.art) return String(ev.art).toUpperCase(); const w=String(ev.name||"Event").toUpperCase().split(/\s+/); const L=[]; let cur=""; w.forEach(x=>{ if((cur+" "+x).trim().length>9 && cur){ L.push(cur); cur=x; } else cur=(cur+" "+x).trim(); }); if(cur) L.push(cur); return L.slice(0,4).join("\n"); }
+function shortOf(ev){ return esc(String(ev.name||"").split(/\s+/)[0].slice(0,6).toUpperCase()); }
+function decoCss(kind,ink,alt,scale){
+  const s=scale||1, px=(n)=>Math.round(n*s)+"px";
+  if(kind==="star") return [`right:${px(-20)};top:${px(18)};width:${px(190)};height:${px(190)};background:${ink};clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)`,`right:${px(70)};top:${px(94)};width:${px(30)};height:${px(30)};border-radius:50%;background:${alt}`];
+  if(kind==="stripe") return [`right:${px(-40)};top:${px(30)};width:${px(320)};height:${px(44)};background:${ink};transform:rotate(-14deg)`,`right:${px(-40)};top:${px(96)};width:${px(320)};height:${px(22)};background:${alt};transform:rotate(-14deg)`];
+  if(kind==="dot") return [`right:${px(24)};top:${px(54)};width:${px(130)};height:${px(130)};border-radius:50%;background:${ink}`,`right:${px(16)};top:${px(38)};width:${px(60)};height:${px(60)};border-radius:50%;background:${alt};border:${px(3)} solid ${ink}`];
+  return [`right:${px(-50)};top:${px(-40)};width:${px(230)};height:${px(230)};border-radius:50%;border:${px(38)} solid ${ink};box-sizing:border-box`,`right:${px(64)};top:${px(60)};width:${px(46)};height:${px(46)};border-radius:50%;background:${alt}`];
+}
+const BANNER_RE=/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/;
+function validBanner(src){ return typeof src==="string" && src.length<262000 && BANNER_RE.test(src); }
+/* Only the event's own organizer can set its banner: anything else in the shared store is ignored. */
+function bannerOf(eid){ const b=S.banners[eid], e=evById(eid); return (b && e && b.by && b.by===e.hostId && validBanner(b.src)) ? b.src : ""; }
+function thumbHTML(e){ const b=bannerOf(e.id); return b ? `<span class="thumb" style="background:var(--night)"><img src="${esc(b)}" alt=""></span>` : `<span class="thumb" style="background:${esc(e.color||"")}">${shortOf(e)}</span>`; }
+async function readBanner(file){
+  if(!file || !/^image\//.test(file.type||"")) throw new Error("type");
+  if(file.size>25e6) throw new Error("big");
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error("type")); i.src=url; });
+    let max=1200, q=.82;
+    for(let k=0;k<7;k++){
+      const sc=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight)), c=document.createElement("canvas");
+      c.width=Math.max(1,Math.round(img.naturalWidth*sc)); c.height=Math.max(1,Math.round(img.naturalHeight*sc));
+      const x=c.getContext("2d"); x.fillStyle="#0F0D0C"; x.fillRect(0,0,c.width,c.height); x.drawImage(img,0,0,c.width,c.height);
+      const out=c.toDataURL("image/jpeg",q);
+      if(out.length<190000 && validBanner(out)) return out;
+      max=Math.round(max*.82); q=Math.max(.6,q-.05);
+    }
+    throw new Error("big");
+  } finally { URL.revokeObjectURL(url); }
+}
+function themePref(){ try{ return localStorage.getItem("poping.theme")||"auto"; }catch(e){ return "auto"; } }
+function applyTheme(){ const p=themePref(), h=new Date().getHours(); S.theme = p==="auto" ? (h>=6&&h<18?"day":"night") : p; document.documentElement.setAttribute("data-theme",S.theme); }
+function altColor(ev){ const c=ev.color||COLORS[0]; return (c==="#FF5B1F"||c==="#FF8A55")? "#F6F0E4" : "#FF5B1F"; }
+function flyer(ev,o){
+  o=Object.assign({h:300,font:52,radius:22,scale:1,tag:"div",href:"",extra:"",via:"",label:false},o||{});
+  const ban = ("banner" in o) ? (validBanner(o.banner)?o.banner:"") : (ev.id?bannerOf(ev.id):"");
+  if(ban){
+    const openB = o.tag==="a" ? `<a class="flyer" href="${o.href}" data-via="${o.via}"` : `<div class="flyer"`;
+    return `${openB} style="height:${o.h}px;border-radius:${o.radius}px;background:var(--night)" aria-label="${esc(ev.name)}"><img class="ban" src="${esc(ban)}" alt=""><span class="shade"></span>${o.label?`<span class="bname" style="font-size:${Math.round(o.font*.56)}px">${esc(ev.name)}</span>`:""}${o.extra}${o.tag==="a"?"</a>":"</div>"}`;
+  }
+  const d=decoCss(ev.deco||"ring","#0F0D0C",altColor(ev),o.scale);
+  const open = o.tag==="a" ? `<a class="flyer" href="${o.href}" data-via="${o.via}"` : `<div class="flyer"`;
+  return `${open} style="height:${o.h}px;border-radius:${o.radius}px;background:${esc(ev.color||COLORS[0])}" aria-label="${esc(ev.name)}"><span class="deco1" style="${d[0]}"></span><span class="deco2" style="${d[1]}"></span>${o.extra}<span class="art" style="font-size:${o.font}px;max-width:78%">${esc(artOf(ev))}</span>${o.tag==="a"?"</a>":"</div>"}`;
+}
+const activeTix = () => S.tickets.filter(t=>t.status!=="refunded");
+function soldOf(eid){ return activeTix().filter(t=>t.eventId===eid).reduce((a,t)=>a+(t.qty||1),0); }
+function leftOf(ev){ return ev.capacity? Math.max(0, ev.capacity-soldOf(ev.id)) : Infinity; }
+function holdersOf(eid){ return [...new Set(activeTix().filter(t=>t.eventId===eid).map(t=>t.holderId).filter(Boolean))]; }
+function visibleHolders(eid){ return holdersOf(eid).filter(id=> id===S.me.id || (S.profiles[id]?.visibility||"everyone")!=="nobody"); }
+function myProfile(){ return S.me.id ? S.profiles[S.me.id] : null; }
+function myTypes(){ return myProfile()?.types || []; }
+function following(){ return myProfile()?.following || []; }
+function savedIds(){ return myProfile()?.saved || []; }
+const FOUND = ["discover","search","drops","saved"];
+function myTicketsFor(eid){ return activeTix().filter(t=>t.eventId===eid && t.holderId===S.me.id); }
+function evById(id){ return S.events.find(e=>e.id===id); }
+function nameOf(id){ return S.names[id] || (id===S.me.id ? (S.me.name||"You") : "Someone"); }
+function hostCount(hid){ return S.events.filter(e=>e.hostId===hid && !isCancelled(e) && isOver(e)).length; }
+function waitingOn(eid){ return S.waits.some(w=>w.eventId===eid && w.uid===S.me.id); }
+function facesHTML(ids,size){ const z=size||22; return `<span class="faces">${ids.slice(0,4).map(id=> S.avatars[id] ? `<img src="${esc(S.avatars[id])}" alt="" style="width:${z}px;height:${z}px">` : `<span style="width:${z}px;height:${z}px;background:var(--lilac)"></span>`).join("")}</span>`; }
+function socialLine(ev){
+  const vis=visibleHolders(ev.id).filter(id=>id!==S.me.id), sold=soldOf(ev.id);
+  if(vis.length){ const n=nameOf(vis[0]).split(" ")[0]; return {ids:vis, text: vis.length>1 ? `${esc(n)} + ${vis.length-1} going` : `${esc(n)} going`}; }
+  return {ids:[], text: sold ? `${sold} going` : (ev.sample ? "Sample event" : "Be the first in")};
+}
+const listed = () => S.events.filter(e=>e.public!==false && !isCancelled(e) && !isOver(e));
+function score(ev){ let s=0; if(myTypes().includes(ev.type)) s+=3; if(following().includes(ev.hostId)) s+=2; s+=Math.log1p(soldOf(ev.id))+visibleHolders(ev.id).filter(i=>i!==S.me.id).length*2; if(sMs(ev)<=Date.now()) s+=1; return s; }
+function toast(msg){ S.toast=msg; renderLayer(); clearTimeout(toast.t); toast.t=setTimeout(()=>{S.toast="";renderLayer();},2800); }
+function mapsUrl(ev){ return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent([ev.venue,ev.address,ev.area,"New York, NY"].filter(Boolean).join(", ")); }
+function calUrl(ev){ const f=(t)=>new Date(t).toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,""); return "https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent(ev.name)+"&dates="+f(sMs(ev))+"/"+f(multiDay(ev)?sMs(ev)+3*HOUR:eMs(ev))+"&location="+encodeURIComponent([ev.venue,ev.address,ev.area].filter(Boolean).join(", "))+"&details="+encodeURIComponent("On Poping. "+(ev.blurb||"")); }
+function safeUrl(u){ try{ const x=new URL(u); return (x.protocol==="https:"||x.protocol==="http:")? x.href : ""; }catch(e){ return ""; } }
+const I = {
+  back:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
+  close:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  search:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
+  bell:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4"/></svg>',
+  lock:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>',
+  pin:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--pop)" stroke-width="2.2" aria-hidden="true"><path d="M12 21s-7-6.5-7-12a7 7 0 0114 0c0 5.5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>',
+  play:'<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg>',
+  arrow:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  plus:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  share:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 13v6a2 2 0 002 2h10a2 2 0 002-2v-6"/></svg>',
+  help:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 0c0 2-2.5 2-2.5 4M12 17h.01"/></svg>',
+  cal:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>',
+  send:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M3 11l18-8-8 18-2-8z"/></svg>',
+  image:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/></svg>',
+  heart:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 20s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.5-7 10-7 10z"/></svg>',
+  heartOn:'<svg width="18" height="18" viewBox="0 0 24 24" fill="var(--pink)" stroke="var(--night)" stroke-width="2" aria-hidden="true"><path d="M12 20s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.5-7 10-7 10z"/></svg>',
+  chev:'<svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>',
+  scan:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3M4 12h16"/></svg>',
+  wallet:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18M16 15h2"/></svg>',
+  play2:'<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg>',
+  check:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>'
+};
+const NAVI = {
+  discover:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>',
+  tickets:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M4 7h16v3a2 2 0 000 4v3H4v-3a2 2 0 000-4z"/></svg>',
+  host:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v8M8 12h8"/></svg>',
+  profile:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>'
+};
+
+/* ---------- routing ---------- */
+function go(hash){ if(location.hash==="#"+hash) route(); else location.hash=hash; }
+function route(){
+  const h=(location.hash||"").replace(/^#/,"");
+  const map={p:"event",t:"ticket",yay:"yay",h:"night",live:"live",edit:"edit",rate:"rate"};
+  const m=h.match(/^(p|t|yay|h|live|edit|rate)-(.+)$/);
+  if(m){ S.route=map[m[1]]; S.param=m[2]; }
+  else if(["discover","search","tickets","host","create","profile","drops","help","code","welcome"].concat(DEMO?AUTH:[]).includes(h)){ S.route=h; S.param=""; }
+  else { S.route="discover"; S.param=""; }
+  if(S.route==="night") { S.doorMsg=null; S.doorQ=""; }
+  if(S.route==="create" && (!S.form || S.editId)) { S.form=newForm(); S.editId=null; }
+  if(S.route==="edit"){ const e=evById(S.param); if(e && S.editId!==e.id){ S.form=formFrom(e); S.editId=e.id; } }
+  if(S.route==="welcome" && myProfile()?.onboarded && S.onb.step===0) S.onb={step:1,types:myTypes().slice(),vis:myProfile().visibility||"everyone"};
+  S.enter=true; render(); window.scrollTo(0,0);
+}
+window.addEventListener("hashchange",route);
+
+/* ---------- views ---------- */
+function header(){
+  const unread = dropsList().filter(d=>d.fresh).length;
+  return `<div class="between"><div class="logo">poping<b>.</b></div>
+    <div class="row" style="gap:8px">
+      <a class="iconbtn" href="#search" aria-label="Search">${I.search}</a>
+      <a class="iconbtn" href="#drops" aria-label="Drops${unread?", "+unread+" new":""}">${I.bell}${unread?'<span class="dot"></span>':""}</a>
+      <a href="#code" class="pill" style="height:44px" aria-label="Enter a private event code">${I.lock}Code</a>
+    </div></div>`;
+}
+function vDiscover(){
+  const WH=[["today","Today"],["weekend","Weekend"],["week","This week"],["all","Everything"]];
+  const all=listed().filter(e=>(!S.me.id||e.hostId!==S.me.id)&&inWhen(e,S.when)&&(!S.free||!(e.price>0))&&(S.type==="all"||e.type===S.type)&&(S.type!=="party"||S.sound==="All"||e.sound===S.sound)).sort((a,b)=>score(b)-score(a)||sMs(a)-sMs(b));
+  const n=all.length, i=n? S.stack%n : 0, top=all[i];
+  const title = WH.find(w=>w[0]===S.when)[1];
+  let stack="";
+  if(top){
+    const b1=n>1?all[(i+1)%n]:null, b2=n>2?all[(i+2)%n]:null, soc=socialLine(top), mine=myTicketsFor(top.id).length, left=leftOf(top);
+    const st = mine ? ["YOU'RE IN","var(--lime)"] : left===0 ? ["SOLD OUT","var(--pink)"] : soc.ids.length ? [soc.ids.length+" YOU KNOW","var(--lilac)"] : top.sample ? ["SAMPLE","var(--paper)"] : null;
+    const extra = `<span style="position:absolute;left:14px;top:14px;display:flex;align-items:center;gap:6px;background:var(--night);color:var(--paper);font-size:11px;font-weight:700;padding:5px 10px 5px 5px;border-radius:99px">${soc.ids.length?facesHTML(soc.ids,20):`<span style="width:10px;height:10px;border-radius:5px;background:${typeOf(top.type).c};margin-left:4px"></span>`}${soc.ids.length?soc.text:esc(typeOf(top.type).l)}</span>
+      ${st?`<span class="sticker wob" style="position:absolute;right:14px;top:16px;background:${st[1]}">${st[0]}</span>`:""}<span class="stamp yes" aria-hidden="true">Save</span><span class="stamp no" aria-hidden="true">Skip</span>
+      <span style="position:absolute;right:14px;bottom:14px;display:flex;flex-direction:column;align-items:flex-end;gap:6px"><span style="font-size:11px;font-weight:800;background:var(--night);color:var(--paper);padding:4px 8px;border-radius:6px">${esc(fmtWhen(top))}</span><span style="background:var(--paper);color:var(--night);font-size:14px;font-weight:800;padding:8px 12px;border-radius:99px;border:2px solid var(--night)">${top.price>0?money(top.price)+" all-in":"Free"}</span></span>`;
+    stack=`<div class="stack">
+      ${b2?`<div class="back" style="background:${esc(b2.color)};transform:rotate(-6deg) translateX(-8px)"></div>`:""}
+      ${b1?`<div class="back" style="background:${esc(b1.color)};transform:rotate(5deg) translateX(8px)"></div>`:""}
+      <div class="top${S.dealt?" dealt":""}" data-id="${top.id}">${flyer(top,{tag:"a",href:"#p-"+top.id,via:"discover",h:300,font:50,extra,label:true})}</div></div>
+    ${n>1?`<div class="hint"><span>← skip</span><span>${i+1} / ${n}${myTypes().length?" · your picks first":""}</span><span>save →</span></div>`:""}
+    <div class="row"><div class="grow"></div>
+      <button class="iconbtn heartbtn" data-act="save" data-v="${top.id}" aria-pressed="${savedIds().includes(top.id)}" aria-label="${savedIds().includes(top.id)?"Saved":"Save for later"}">${savedIds().includes(top.id)?I.heartOn:I.heart}</button>
+      <button class="pill" data-act="next">Next ${I.arrow}</button>
+      <a href="#p-${top.id}" data-via="discover" class="pill" style="background:var(--pop);border:2px solid var(--night);color:var(--night)">Open</a></div>`;
+  }
+  const rest=all.filter((e,k)=>k!==i), loading=!S.loaded.events;
+  return `${header()}
+  <h1 class="d dropin" style="margin:0;font-size:64px" aria-label="${esc(title)}">${dropText(title)}</h1>
+  <div class="row" style="margin-top:-6px"><span class="sticker wob2" style="background:var(--paper);font-size:12px">Downtown NYC</span><span class="muted small">${S.me.name?"hey "+esc(S.me.name.split(" ")[0])+", ":""}here's what's poppin</span></div>
+  ${tickerHTML()}
+  <div class="seg" role="group" aria-label="When">${WH.map(w=>`<button class="${S.when===w[0]?"on":""}" aria-pressed="${S.when===w[0]}" data-act="when" data-v="${w[0]}">${w[0]==="week"?"Week":w[0]==="all"?"All":w[1]}</button>`).join("")}</div>
+  <div class="chips" role="group" aria-label="What">${[{k:"all",l:"All",c:""},...TYPES].map(t=>`<button class="pill ${S.type===t.k?"on":""}" aria-pressed="${S.type===t.k}" data-act="type" data-v="${t.k}">${t.c?`<span class="sw" style="background:${t.c}"></span>`:""}${esc(t.l)}</button>`).join("")}<button class="pill ${S.free?"on":""}" aria-pressed="${S.free}" data-act="free">Free only</button></div>
+  ${S.type==="party"?`<div class="chips" role="group" aria-label="Sound">${["All",...SOUNDS].map(s=>`<button class="pill ${S.sound===s?"on":""}" style="height:32px;font-size:12px" aria-pressed="${S.sound===s}" data-act="sound" data-v="${esc(s)}">${esc(s==="All"?"Any sound":s)}</button>`).join("")}</div>`:""}
+  ${loading?'<div class="skel" style="height:300px"></div><div class="skel"></div>':""}
+  ${stack}
+  ${rest.length?`<div class="label" style="margin-top:6px">Also ${esc(title.toLowerCase())}</div>`:""}
+  ${rest.map(e=>rowHTML(e,"discover")).join("")}
+  ${!loading && !n ? `<div class="card col" style="align-items:center;text-align:center;padding:30px 16px">
+     <div class="d" style="font-size:44px">Quiet ${S.when==="today"?"day":"stretch"}.</div>
+     <div class="muted small">Nothing ${S.free?"free ":""}${S.type==="all"?"":"in "+esc(typeOf(S.type).l)+" "}${S.when==="all"?"coming up":"in this window"} yet.</div>
+     ${S.when!=="all"?'<button class="pill" data-act="when" data-v="all">Show everything coming up</button>':""}
+     <a href="#create" class="pill">Or host your own</a></div>`:""}`;
+}
+function rowHTML(e,via){
+  const soc=socialLine(e), mine=myTicketsFor(e.id).length, t=typeOf(e.type);
+  return `<a class="listrow" href="#p-${e.id}" data-via="${via}">
+    ${thumbHTML(e)}
+    <span class="grow" style="display:flex;flex-direction:column;gap:3px">
+      <span class="when">${esc(fmtWhen(e))}${e.public===false?" · private":""}</span>
+      <span style="font-size:15px;font-weight:700">${esc(e.name)}</span>
+      <span class="row muted small" style="gap:6px">${soc.ids.length?facesHTML(soc.ids,18):`<span style="width:8px;height:8px;border-radius:4px;background:${t.c};flex:none"></span>`}${soc.ids.length?soc.text:esc(t.l)+(e.area?" · "+esc(e.area):"")}${mine?' · <b style="color:var(--t-lime)">you\'re in</b>':""}</span>
+    </span>
+    <span style="font-weight:800">${e.price>0?money(e.price):"Free"}</span></a>`;
+}
+function vSearch(){
+  return `<div class="row"><a class="iconbtn" href="#discover" aria-label="Back">${I.back}</a>
+    <label class="row grow" style="background:var(--smoke);border:2px solid var(--pop);border-radius:16px;padding:0 14px;height:50px">${I.search}
+      <input id="q" class="grow" autocomplete="off" placeholder="Events, artists, organizers, places" value="${esc(S.q)}" style="background:transparent;border:none;outline:none;font-size:16px;font-weight:600" aria-label="Search"></label></div>
+    <div id="results">${searchResults()}</div>`;
+}
+function searchResults(){
+  const q=S.q.trim().toLowerCase();
+  if(!q){
+    const tr=TYPES.map(t=>({t,n:listed().filter(e=>e.type===t.k&&inWhen(e,"week")).length})).filter(x=>x.n).sort((a,b)=>b.n-a.n).slice(0,4);
+    return `<div class="col"><div class="label">Busy this week</div><div class="grid2">${tr.map(x=>`<button data-act="pick-type" data-v="${x.t.k}" style="height:92px;border-radius:18px;border:2px solid var(--night);background:${x.t.c};color:var(--night);text-align:left;padding:12px;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between"><span class="small" style="font-weight:800">${x.n} THIS WEEK</span><span class="d" style="font-size:26px">${esc(x.t.l)}</span></button>`).join("")||'<div class="muted small">Nothing listed yet.</div>'}</div></div>`;
+  }
+  const hits=listed().filter(e=>[e.name,e.venue,e.area,e.sound,e.hostName,e.blurb,e.lineup,typeOf(e.type).l].join(" ").toLowerCase().includes(q)).sort((a,b)=>sMs(a)-sMs(b));
+  const hosts=[...new Map(listed().filter(e=>String(e.hostName||"").toLowerCase().includes(q)).map(e=>[e.hostId+"|"+e.hostName,e])).values()];
+  if(!hits.length && !hosts.length) return `<div class="col" style="align-items:center;text-align:center;padding:40px 10px"><div class="d" style="font-size:44px">Nothing yet.</div><div class="muted small">No events match "${esc(S.q)}". Try a type, an artist or a neighborhood.</div></div>`;
+  return `<div class="col">${hits.length?`<div class="label">Events · ${hits.length}</div>`+hits.map(e=>rowHTML(e,"search")).join(""):""}
+    ${hosts.length?`<div class="label" style="margin-top:8px">Organizers</div>`+hosts.map(e=>{const on=following().includes(e.hostId);return `<div class="row"><span class="thumb" style="width:48px;height:48px;border-radius:24px;background:var(--pop);font-size:14px">${esc(String(e.hostName||"?").slice(0,2).toUpperCase())}</span><span class="grow"><b>${esc(e.hostName)}</b><br><span class="muted small">${listed().filter(x=>x.hostId===e.hostId).length} upcoming</span></span>${e.sample?"":`<button class="pill ${on?"":"on"}" data-act="follow" data-v="${esc(e.hostId)}">${on?"Following":"Follow"}</button>`}</div>`}).join(""):""}</div>`;
+}
+function vEvent(){
+  const ev=evById(S.param);
+  if(!ev) return S.loaded.events ? `<a class="iconbtn" href="#discover" aria-label="Back">${I.back}</a><div class="d" style="font-size:48px">Event not found.</div><div class="muted">It may have been removed. <a href="#discover">Back to Discover</a></div>` : `<div class="skel" style="height:360px"></div>`;
+  const sold=soldOf(ev.id), cap=ev.capacity||0, left=leftOf(ev), mine=myTicketsFor(ev.id), isHost=ev.hostId&&ev.hostId===S.me.id;
+  const vis=visibleHolders(ev.id).filter(i=>i!==S.me.id), on=following().includes(ev.hostId), over=isOver(ev), canc=isCancelled(ev), t=typeOf(ev.type);
+  const listen=safeUrl(ev.listenUrl||""), past=hostCount(ev.hostId);
+  const sticker = canc ? ["CANCELLED","var(--pink)"] : left===0 ? ["SOLD OUT","var(--pink)"] : (cap && left<=Math.max(5,cap*0.1)) ? [left+" LEFT","var(--pink)"] : vis.length ? [vis.length+" YOU KNOW","var(--lilac)"] : ev.sample ? ["SAMPLE EVENT","var(--paper)"] : null;
+  const extra=`<a class="iconbtn" href="#discover" aria-label="Back" style="position:absolute;left:14px;top:14px;background:var(--night);border-color:var(--night);color:var(--paper)">${I.back}</a>
+    <button class="iconbtn" data-act="save" data-v="${ev.id}" aria-pressed="${savedIds().includes(ev.id)}" aria-label="${savedIds().includes(ev.id)?"Saved":"Save for later"}" style="position:absolute;right:66px;top:14px;background:var(--night);border-color:var(--night);color:var(--paper)">${savedIds().includes(ev.id)?I.heartOn:I.heart}</button>
+    <button class="iconbtn" data-act="share" data-v="${ev.id}" aria-label="Copy event details" style="position:absolute;right:14px;top:14px;background:var(--night);border-color:var(--night);color:var(--paper)">${I.share}</button>
+    ${sticker?`<span class="sticker" style="position:absolute;left:16px;top:76px;background:${sticker[1]};transform:rotate(-5deg);font-size:12px">${sticker[0]}</span>`:""}`;
+  const waiting=waitingOn(ev.id);
+  const cta = isHost ? `<a class="btn paper" href="#h-${ev.id}" style="width:auto;padding:0 22px">Manage</a>`
+    : canc ? `<button class="btn" disabled style="width:auto;padding:0 22px">Cancelled</button>`
+    : mine.length ? `<a class="btn lime" href="#t-${mine[0].id}" style="width:auto;padding:0 22px">You're in</a>`
+    : over ? `<button class="btn" disabled style="width:auto;padding:0 22px">Ended</button>`
+    : left===0 ? `<button class="btn lilac" data-act="wait" data-v="${ev.id}" style="width:auto;padding:0 18px">${waiting?"On waitlist":"Join waitlist"}</button>`
+    : `<button class="btn" data-act="buy" data-v="${ev.id}" style="width:auto;padding:0 26px">${ev.price>0?"I'm in":"RSVP"}</button>`;
+  const addrHidden = ev.public===false && !mine.length && !isHost;
+  const info=[["When",fmtWhen(ev)+(multiDay(ev)&&ev.hours?" · "+ev.hours:"")],["Age",ev.age],["Dress",ev.dress],["Door",ev.door]].filter(x=>x[1]);
+  return `<div style="margin:-14px -16px 0">${flyer(ev,{h:360,font:76,radius:0,extra})}</div>
+  <div class="row" style="flex-wrap:wrap;gap:8px">
+    <span class="pill" style="height:30px;background:var(--smoke);border:none"><span class="sw" style="background:${t.c}"></span>${esc(t.l)}</span>
+    ${ev.sound&&ev.type==="party"?`<span class="pill" style="height:30px;background:var(--smoke);border:none">${esc(ev.sound)}</span>`:""}
+    ${ev.area?`<span class="pill" style="height:30px;background:var(--smoke);border:none">${esc(ev.area)}</span>`:""}
+    ${ev.public===false?`<span class="pill" style="height:30px;background:var(--lilac);color:var(--night);border:none">Private</span>`:""}
+  </div>
+  <h1 class="dw" style="margin:0;font-size:32px;line-height:1">${esc(ev.name)}</h1>
+  <div class="muted" style="margin-top:-6px">${esc(fmtWhen(ev))}${cap?` · ${sold}/${cap} going`:` · ${sold} going`}</div>
+  ${canc?`<div class="notice" style="border-color:var(--pink);color:var(--fg)">${esc(ev.hostName||"The organizer")} cancelled this event. Ticket holders are refunded automatically.</div>`:""}
+  ${vis.length?`<div class="row" style="background:var(--lilac);color:var(--night);border:2px solid var(--night);border-radius:18px;padding:12px">${facesHTML(vis,34)}<div class="grow" style="font-size:14px"><b>${esc(vis.slice(0,2).map(id=>nameOf(id).split(" ")[0]).join(", "))}${vis.length>2?" + "+(vis.length-2):""} going</b><br><span class="small">people you know</span></div></div>`:""}
+  ${ev.lineup?`<div class="card col" style="gap:6px"><div class="label">Lineup</div><div style="line-height:1.5">${esc(ev.lineup)}</div>${listen?`<a class="btn2" href="${esc(listen)}" target="_blank" rel="noopener" style="margin-top:4px">${I.play} Hear the lineup</a>`:""}</div>`:(listen?`<a class="btn2" href="${esc(listen)}" target="_blank" rel="noopener">${I.play} Hear the lineup</a>`:"")}
+  ${info.length?`<div class="info">${info.map(x=>`<div><b>${x[0]}</b>${esc(x[1])}</div>`).join("")}</div>`:""}
+  <div class="row">${I.pin}<div class="grow"><b>${esc(ev.venue||"Venue TBA")}</b><br><span class="muted small">${addrHidden?"Exact address unlocks with your ticket":esc([ev.address,ev.area].filter(Boolean).join(" · "))}</span></div>${addrHidden?"":`<a class="pill" href="${esc(mapsUrl(ev))}" target="_blank" rel="noopener">Map</a>`}</div>
+  ${over||canc?"":`<a class="btn2" href="${esc(calUrl(ev))}" target="_blank" rel="noopener">${I.cal} Add to calendar</a>`}
+  <div class="row" style="border:1px solid var(--line);border-radius:18px;padding:12px">
+    <span class="thumb" style="width:44px;height:44px;border-radius:22px;background:var(--pop);font-size:13px">${esc(String(ev.hostName||"?").slice(0,2).toUpperCase())}</span>
+    <div class="grow"><b>${esc(ev.hostName||"Organizer")}</b>${ev.verified?` <span class="sticker" style="background:var(--sky);font-size:10px;padding:1px 6px">VERIFIED</span>`:""}<br><span class="muted small">${ev.sample?"Sample organizer":past?past+" past event"+(past>1?"s":"")+" on Poping":"New on Poping"}</span></div>
+    ${isHost||!ev.hostId||ev.sample?"":`<button class="pill ${on?"":"on"}" data-act="follow" data-v="${esc(ev.hostId)}" aria-pressed="${on}">${on?"Following":"Follow"}</button>`}</div>
+  ${ev.blurb?`<div style="line-height:1.55;color:var(--fg2)">${esc(ev.blurb)}</div>`:""}
+  <div class="muted small">${ev.price>0?"Full refund up to 24 hours before. ":""}<button data-act="report" style="background:none;border:none;color:var(--ash);text-decoration:underline;cursor:pointer;font-size:12px;padding:6px 0">Report this event</button></div>
+  <div style="position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:15;background:linear-gradient(transparent,var(--bg) 30%);padding:18px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))">
+    <div class="between" style="max-width:440px;margin:0 auto"><div><div class="dw" style="font-size:30px;line-height:1">${ev.price>0?money(ev.price):"Free"}</div><div class="muted small">${left===0&&!mine.length?"we'll text you if a spot opens":ev.price>0?"all-in, no surprise fees":"RSVP, no card needed"}</div></div>${cta}</div></div>
+  <div style="height:70px"></div>`;
+}
+function vCode(){
+  return `<div class="row"><a class="iconbtn" href="#discover" aria-label="Back">${I.back}</a><div class="label" style="color:var(--fg)">Private event</div></div>
+  <div style="width:84px;height:84px;border-radius:24px;background:var(--lilac);border:2px solid var(--night);box-shadow:0 5px 0 var(--shadow);display:flex;align-items:center;justify-content:center;transform:rotate(-6deg);margin-top:10px;color:var(--night)"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></div>
+  <h1 class="d" style="margin:0;font-size:66px">Got the<br><span style="color:var(--t-lilac)">secret</span><br>code?</h1>
+  <div class="muted">Private events don't show up in Discover. Pop in the code from your invite.</div>
+  <form id="codeForm" class="col"><label class="field" for="codeIn">Event code<input id="codeIn" class="input" autocomplete="off" autocapitalize="characters" style="height:64px;font-family:var(--display);font-weight:900;font-stretch:75%;font-size:30px;letter-spacing:6px;border:2px solid var(--lilac)" placeholder="JESS25"></label>
+  <div id="codeErr" class="small" style="color:var(--t-pink);min-height:16px"></div>
+  <button class="btn lilac" type="submit">Let me in</button></form>`;
+}
+function vTickets(){
+  const mine=activeTix().filter(t=>t.holderId===S.me.id).map(t=>({t,e:evById(t.eventId)})).filter(x=>x.e);
+  const up=mine.filter(x=>!isOver(x.e)&&!isCancelled(x.e)).sort((a,b)=>sMs(a.e)-sMs(b.e)), past=mine.filter(x=>isOver(x.e)||isCancelled(x.e));
+  const sv=savedIds().map(evById).filter(e=>e&&!isOver(e)&&!isCancelled(e));
+  const list=S.myTab==="upcoming"?up:past;
+  return `<h1 class="d" style="margin:0;font-size:56px">Your<br>tickets</h1>
+  <div class="seg" role="tablist">${[["upcoming","Upcoming"],["saved","Saved"],["past","Past"]].map(x=>`<button role="tab" aria-selected="${S.myTab===x[0]}" class="${S.myTab===x[0]?"on":""}" data-act="mytab" data-v="${x[0]}">${x[1]}${x[0]==="upcoming"&&up.length?" · "+up.length:x[0]==="saved"&&sv.length?" · "+sv.length:""}</button>`).join("")}</div>
+  ${S.myTab==="saved"?(sv.length?sv.map(e=>rowHTML(e,"saved")).join(""):`<div class="card col" style="align-items:center;text-align:center;padding:28px 16px"><div class="d" style="font-size:40px">Nothing saved.</div><div class="muted small">Tap the heart on anything you might go to. We remind you the day before.</div><a class="pill on" href="#discover">Discover</a></div>`):""}
+  ${!S.me.id?'<div class="notice">Sign in to claude.ai inside your organization to get tickets.</div>':""}
+  ${S.myTab==="saved"?"":list.map(({t,e})=>`<a class="listrow" href="#t-${t.id}">${thumbHTML(e)}<span class="grow"><span class="when">${esc(fmtWhen(e))}</span><br><b>${esc(e.name)}</b><br><span class="muted small">${t.qty} ticket${t.qty>1?"s":""} · ${t.total>0?money2(t.total):"free"}${t.fromId?" · sent by "+esc(nameOf(t.fromId).split(" ")[0]):""}</span></span><span class="sticker" style="background:${isCancelled(e)?"var(--pink)":isOver(e)?"var(--smoke2)":"var(--lime)"};color:${isOver(e)&&!isCancelled(e)?"var(--fg)":"var(--night)"}">${isCancelled(e)?"CANCELLED":isOver(e)?"DONE":"OPEN"}</span></a>`).join("")}
+  ${!list.length&&S.myTab!=="saved"?`<div class="card col" style="align-items:center;text-align:center;padding:28px 16px"><div class="d" style="font-size:40px">${S.myTab==="upcoming"?"Nothing booked.":"Nothing yet."}</div><div class="muted small">${S.myTab==="upcoming"?"Find something for today.":"Where you've been lands here."}</div><a class="pill on" href="#discover">Discover</a></div>`:""}`;
+}
+function vTicket(){
+  const t=S.tickets.find(x=>x.id===S.param), e=t&&evById(t.eventId);
+  if(!t||!e) return `<a class="iconbtn" href="#tickets" aria-label="Back">${I.back}</a><div class="d" style="font-size:44px">Ticket not found.</div>`;
+  if(t.status==="refunded") return `<a class="iconbtn" href="#tickets" aria-label="Back">${I.back}</a><div class="d" style="font-size:44px">${t.transferred?"Sent to a friend.":"Released."}</div><div class="muted">${t.transferred?"This ticket now lives in their Tickets tab.":"This ticket was released"+(t.total>0?" and refunded (test mode).":".")}</div>`;
+  const on=following().includes(e.hostId), mineT=t.holderId===S.me.id, hrsLeft=(sMs(e)-Date.now())/HOUR;
+  return `<div class="row"><a class="iconbtn" href="#tickets" aria-label="Back to tickets">${I.back}</a><div class="grow"></div><span class="muted small">${t.qty} ${t.qty>1?"people":"person"} on this ticket</span></div>
+  ${isCancelled(e)?`<div class="notice" style="border-color:var(--pink);color:var(--fg)">This event was cancelled. ${t.total>0?"You're refunded "+money2(t.total)+" (test mode).":""}</div>`:""}
+  <div class="holo" style="border-radius:24px;overflow:hidden;border:2px solid var(--night);box-shadow:0 6px 0 var(--pop);transform:rotate(-1deg)">
+    ${flyer(e,{h:110,font:36,radius:0,scale:.55})}
+    <div style="background:var(--paper);color:var(--night);padding:16px;display:flex;flex-direction:column;align-items:center;gap:10px">
+      <div style="font-weight:800;font-size:13px">${esc(nameOf(t.holderId).toUpperCase())}${t.qty>1?" + "+(t.qty-1):""}</div>
+      <div style="position:relative"><div class="qrbox" id="qr" role="img" aria-label="Entry QR code"></div>${(t.checkedIn||0)>0?`<div class="instamp">${t.checkedIn>=t.qty?"You're in":t.checkedIn+" of "+t.qty+" in"}</div>`:""}</div>
+      <div class="dw" id="doorCode" style="font-size:30px;letter-spacing:4px"></div>
+      ${e.rotating?`<div class="tick"><i id="tickBar" style="width:100%"></i></div><div class="small" style="color:#5E5850" id="tickTxt">Anti-screenshot mode · code changes every 15 seconds</div>`
+      :`<div class="small" style="color:#5E5850;text-align:center;line-height:1.4">Single-use at the door.<br>No phone? Give your name and show ID.</div>`}
+    </div>
+    <div style="background:var(--paper);color:var(--night);border-top:2px dashed #A8A096;padding:12px 16px 14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;font-size:12px">
+      <div><div style="color:#5E5850">When</div><b style="font-size:14px">${esc(fmtWhen(e))}</b></div>
+      <div><div style="color:#5E5850">Paid</div><b style="font-size:14px">${t.total>0?money2(t.total):"Free"}</b></div>
+      <div style="grid-column:span 2"><div style="color:#5E5850">Where</div><b style="font-size:14px">${esc([e.venue,e.address,e.area].filter(Boolean).join(" · ")||"TBA")}</b></div>
+    </div>
+  </div>
+  ${!isCancelled(e)&&!isOver(e)&&DEMO?`<button class="btn2 paper" data-act="wallet" data-v="${t.id}">${I.wallet} Add to wallet</button>`:""}
+  ${isOver(e)&&!isCancelled(e)?`<a class="btn" href="#rate-${e.id}">Rate it</a>`:""}
+  ${!isCancelled(e)&&!isOver(e)?`<div class="grid2"><a class="btn2" href="${esc(mapsUrl(e))}" target="_blank" rel="noopener">${I.pin} Directions</a><a class="btn2" href="${esc(calUrl(e))}" target="_blank" rel="noopener">${I.cal} Calendar</a></div>
+  ${mineT&&t.qty>1?`<button class="btn2 paper" data-act="send" data-v="${t.id}">${I.send} Send a ticket to a friend</button>`:""}
+  ${mineT&&t.qty===1&&!t.checkedIn?`<button class="btn2" data-act="send" data-v="${t.id}">${I.send} Give this ticket to a friend</button>`:""}
+  ${mineT&&!t.checkedIn?`<button class="btn2" data-act="cantgo" data-v="${t.id}" style="color:var(--ash)">I can't go anymore</button>`:""}`:""}
+  ${e.hostId && !e.sample && e.hostId!==S.me.id ? `<div class="card col"><div class="small"><b style="font-size:14px">Catch ${esc(e.hostName)}'s next one?</b><br><span class="muted">Their new events show up in your Drops.</span></div><button class="btn2 ${on?"":"solid"}" data-act="follow" data-v="${esc(e.hostId)}">${on?"Following":"Follow "+esc(e.hostName)}</button></div>`:""}
+  <a class="btn2" href="#p-${e.id}">View event page</a>`;
+}
+function vYay(){
+  const t=S.tickets.find(x=>x.id===S.param), e=t&&evById(t.eventId), vis=e?visibleHolders(e.id).filter(i=>i!==S.me.id):[];
+  return `<div style="margin:-14px -16px -110px;min-height:100vh;background:var(--lime);color:var(--night);padding:20px max(20px,env(safe-area-inset-right,0px)) 120px max(20px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px">
+    <div class="row" style="justify-content:flex-end"><a class="iconbtn" href="#discover" aria-label="Close" style="background:var(--night);color:var(--lime);border-color:var(--night)">${I.close}</a></div>
+    <div style="flex:1;min-height:60px"></div>
+    <span class="sticker" style="align-self:flex-start;background:var(--pink);transform:rotate(-4deg);font-size:12px">${t?`${t.qty} TICKET${t.qty>1?"S":""} · ${t.total>0?money2(t.total)+" PAID (TEST)":"FREE RSVP"}`:"DONE"}</span>
+    <h1 class="d yaybig" style="margin:0;font-size:132px;line-height:.8;letter-spacing:-3px">You're<br>in.</h1>
+    <div style="font-size:17px;font-weight:600;line-height:1.4">${e?esc(e.name)+", "+esc(fmtWhen(e).toLowerCase())+".":""}<br>${vis.length?esc(vis.slice(0,3).map(id=>nameOf(id).split(" ")[0]).join(", "))+" will see you there.":"Your ticket is in the Tickets tab."}</div>
+    ${t&&t.qty>1?`<div style="background:var(--night);color:var(--paper);border-radius:18px;padding:12px;font-size:13px;line-height:1.4"><b>Coming with friends?</b> Send them their own ticket from the ticket page, so nobody waits outside for you.</div>`:""}
+    <a class="btn dark" href="${t?"#t-"+t.id:"#tickets"}">View my ticket</a>
+    ${e?`<a class="btn2" href="${esc(calUrl(e))}" target="_blank" rel="noopener" style="border:2px solid var(--night);color:var(--night)">${I.cal} Add to calendar</a>`:""}
+    <button class="btn2" data-act="share" data-v="${e?e.id:""}" style="border:2px solid var(--night);color:var(--night)">${I.share} Copy invite for the group chat</button>
+  </div>`;
+}
+function dropsList(){
+  if(!S.me.id) return [];
+  const fol=following(), types=myTypes(), now=Date.now(), out=[];
+  activeTix().filter(t=>t.holderId===S.me.id).forEach(t=>{ const e=evById(t.eventId); if(!e) return;
+    if(isCancelled(e)) out.push({k:"c"+t.id,title:"Cancelled:",body:`${e.name}. ${t.total>0?"You're refunded (test mode).":""}`,href:"#t-"+t.id,c:"var(--pink)",g:"!",at:e.updatedAt||now,fresh:true});
+    else if(!isOver(e)&&sMs(e)-now<DAY) out.push({k:"t"+t.id,title:"Today:",body:`${e.name}, ${fmtWhen(e).toLowerCase()}. Your ticket is ready.`,href:"#t-"+t.id,c:"var(--sky)",g:"T",at:sMs(e)-DAY,fresh:true});
+    if(t.fromId) out.push({k:"g"+t.id,title:nameOf(t.fromId).split(" ")[0],body:`sent you a ticket to ${e.name}.`,href:"#t-"+t.id,c:"var(--lime)",g:nameOf(t.fromId).slice(0,1),at:t.createdAt||0,fresh:now-(t.createdAt||0)<2*DAY});
+  });
+  savedIds().forEach(id=>{ const e=evById(id); if(e&&!isOver(e)&&!isCancelled(e)&&!myTicketsFor(e.id).length&&sMs(e)-now<DAY&&sMs(e)>now-HOUR) out.push({k:"s"+e.id,title:"You saved this:",body:`${e.name} starts ${fmtWhen(e).toLowerCase()}.`,href:"#p-"+e.id,c:"var(--pink)",g:"S",at:sMs(e)-DAY,fresh:true}); });
+  S.waits.filter(w=>w.uid===S.me.id).forEach(w=>{ const e=evById(w.eventId); if(e&&!isOver(e)&&!isCancelled(e)&&leftOf(e)>0&&!myTicketsFor(e.id).length) out.push({k:"w"+e.id,title:"A spot opened:",body:`${e.name}. First come, first served.`,href:"#p-"+e.id,c:"var(--lime)",g:"!",at:now,fresh:true}); });
+  listed().filter(e=>fol.includes(e.hostId)).forEach(e=>out.push({k:"f"+e.id,title:e.hostName,body:`posted ${e.name}, ${fmtWhen(e).toLowerCase()}.`,href:"#p-"+e.id,c:"var(--pop)",g:String(e.hostName||"?").slice(0,2).toUpperCase(),at:e.createdAt||0,fresh:(now-(e.createdAt||0))<2*DAY}));
+  listed().forEach(e=>{ const v=visibleHolders(e.id).filter(i=>i!==S.me.id); if(v.length && !myTicketsFor(e.id).length) out.push({k:"p"+e.id,title:nameOf(v[0]).split(" ")[0],body:`${v.length>1?"and "+(v.length-1)+" more are":"is"} going to ${e.name}.`,href:"#p-"+e.id,c:"var(--lilac)",g:nameOf(v[0]).slice(0,1).toUpperCase(),at:Math.max(0,...activeTix().filter(t=>t.eventId===e.id).map(t=>t.createdAt||0)),fresh:false}); });
+  const wk=listed().filter(e=>inWhen(e,"weekend"));
+  if(wk.length) out.push({k:"wk",title:"The weekend drop:",body:`${wk.length} things on Downtown${types.length?", "+wk.filter(e=>types.includes(e.type)).length+" in your picks":""}.`,href:"#discover",c:"var(--lime)",g:"!",at:sod(now),fresh:false,weekend:true});
+  return out.sort((a,b)=>b.at-a.at);
+}
+function vDrops(){
+  const L=dropsList(), wk=L.find(x=>x.weekend), rest=L.filter(x=>!x.weekend);
+  return `<div class="row"><a class="iconbtn" href="#discover" aria-label="Back">${I.back}</a><h1 class="d grow" style="margin:0;font-size:42px">Drops</h1></div>
+  ${wk?`<a href="#discover" data-act="when" data-v="weekend" style="display:block;border-radius:24px;background:var(--pop);color:var(--night);border:2px solid var(--night);box-shadow:0 5px 0 var(--shadow);padding:16px;position:relative;overflow:hidden;text-decoration:none"><span style="position:absolute;right:-24px;top:-24px;width:120px;height:120px;background:var(--lime);clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)"></span><span class="small" style="font-weight:800;position:relative">THIS WEEKEND</span><div class="d" style="font-size:46px;margin-top:6px;position:relative">The weekend<br>drop is here</div><div style="font-weight:600;margin-top:8px;position:relative">${esc(wk.body)}</div></a>`:""}
+  ${rest.map(n=>`<a class="listrow" href="${n.href}" data-via="drops" style="align-items:flex-start"><span class="thumb" style="width:44px;height:44px;border-radius:22px;background:${n.c};font-size:14px">${esc(n.g)}</span><span class="grow" style="font-size:14px;line-height:1.4"><b>${esc(n.title)}</b> ${esc(n.body)}</span>${n.fresh?'<span aria-label="New" style="width:10px;height:10px;border-radius:5px;background:var(--pop);flex:none;margin-top:6px"></span>':""}</a>`).join("")}
+  ${!rest.length?'<div class="card muted small" style="line-height:1.5">Follow organizers and grab tickets: new events from people you follow, friends going, waitlist spots and day-of reminders land here.</div>':""}`;
+}
+function vProfile(){
+  const p=myProfile()||{}, types=p.types||[], fol=p.following||[];
+  const been=activeTix().filter(t=>t.holderId===S.me.id).map(t=>evById(t.eventId)).filter(e=>e&&isOver(e)&&!isCancelled(e));
+  const hosts=fol.map(h=>{const e=S.events.find(x=>x.hostId===h);return e?{id:h,n:e.hostName}:null}).filter(Boolean);
+  return `<div class="row"><div style="width:76px;height:76px;border-radius:38px;overflow:hidden;border:2px solid var(--night);box-shadow:0 4px 0 var(--shadow);transform:rotate(-4deg);background:var(--pink);flex:none">${S.avatars[S.me.id]?`<img src="${esc(S.avatars[S.me.id])}" alt="" style="width:100%;height:100%;object-fit:cover">`:""}</div>
+    <div class="grow"><h1 class="d" style="margin:0;font-size:40px">${esc(S.me.name||"You")}</h1><div class="muted small">${activeTix().filter(t=>t.holderId===S.me.id).length} tickets so far</div></div>
+    <a class="iconbtn" href="#help" aria-label="Help">${I.help}</a></div>
+  <div class="grid3"><div class="stat"><div class="n">${been.length}</div><div class="muted small">been to</div></div><div class="stat"><div class="n">${fol.length}</div><div class="muted small">following</div></div><div class="stat"><div class="n">${S.events.filter(e=>e.hostId===S.me.id).length}</div><div class="muted small">hosted</div></div></div>
+  <div class="between"><div class="label">What I go out for</div><a href="#welcome" style="font-weight:800;font-size:13px;padding:8px 0">Edit</a></div>
+  <div class="row" style="flex-wrap:wrap;gap:8px">${types.length?types.map((k,i)=>`<span class="d" style="font-size:22px;background:${typeOf(k).c};color:var(--night);border:2px solid var(--night);border-radius:12px;padding:6px 12px;transform:rotate(${i%2?2:-2}deg)">${esc(typeOf(k).l)}</span>`).join(""):'<span class="muted small">Nothing picked yet.</span>'}</div>
+  <div class="card col"><b>Show me in going lists?</b>
+    <div class="seg" role="radiogroup">${[["everyone","Yes, show me"],["nobody","Keep me hidden"]].map(x=>`<button role="radio" aria-checked="${(p.visibility||"everyone")===x[0]}" class="${(p.visibility||"everyone")===x[0]?"on":""}" data-act="vis" data-v="${x[0]}">${x[1]}</button>`).join("")}</div>
+    <div class="muted small" style="line-height:1.45">${(p.visibility||"everyone")==="nobody"?"You're invisible on event pages. You still see others who share.":"People you know see your face on events you're going to."}</div></div>
+  <div class="card col"><b>Look</b>
+    <div class="seg" role="radiogroup" aria-label="Look">${[["auto","Auto"],["day","Day"],["night","Night"]].map(x=>`<button role="radio" aria-checked="${themePref()===x[0]}" class="${themePref()===x[0]?"on":""}" data-act="theme" data-v="${x[0]}">${x[1]}</button>`).join("")}</div>
+    <div class="muted small" style="line-height:1.45">${themePref()==="auto"?"Light in the daytime, dark from 6 PM. Right now: "+(S.theme==="day"?"day":"night")+".":"Always "+themePref()+"."}</div></div>
+  ${hosts.length?`<div class="label">Following</div><div class="row" style="flex-wrap:wrap;gap:8px">${hosts.map(h=>`<button class="pill" data-act="follow" data-v="${esc(h.id)}">${esc(h.n)} · unfollow</button>`).join("")}</div>`:""}
+  ${been.length?`<div class="label">Been there</div><div class="chips">${been.map((e,i)=>`<a href="#p-${e.id}" style="flex:none;width:104px;transform:rotate(${i%2?2:-3}deg)">${flyer(e,{h:132,font:20,radius:14,scale:.45})}</a>`).join("")}</div>`:""}
+  <div class="col" style="gap:0;border-top:1px solid var(--smoke2)">
+    <a href="#drops" class="between" style="padding:14px 0;border-bottom:1px solid var(--smoke2);color:var(--fg);text-decoration:none;font-weight:600">Drops + notifications <span class="muted">›</span></a>
+    <a href="#help" class="between" style="padding:14px 0;border-bottom:1px solid var(--smoke2);color:var(--fg);text-decoration:none;font-weight:600">Help, refunds + safety <span class="muted">›</span></a>
+    <a href="#host" class="between" style="padding:14px 0;color:var(--fg);text-decoration:none;font-weight:600">Organizer mode <span class="sticker" style="background:var(--lime)">HOST</span></a></div>`;
+}
+function vWelcome(){
+  const o=S.onb, st=o.step, first=(S.me.name||"").split(" ")[0];
+  const bars=[0,1,2].map(i=>`<span style="flex:1;height:4px;border-radius:2px;background:${i<=st?"var(--pop)":"var(--smoke2)"}"></span>`).join("");
+  let body="";
+  if(st===0) body=`<div style="position:relative;height:190px"><span style="position:absolute;right:-20px;top:0;width:190px;height:190px;border-radius:50%;border:34px solid var(--pop)"></span><span style="position:absolute;right:120px;top:130px;width:54px;height:54px;background:var(--lime);clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)"></span></div>
+    <h1 class="d" style="margin:0;font-size:84px">See<br>what's<br>on${first?",<br><span style='color:var(--t-lime)'>"+esc(first)+"</span>":""}.</h1>
+    <div class="muted" style="line-height:1.45">Parties, pop-ups, exhibitions, culture nights and more around Downtown NYC, who you know is going, and tickets at one all-in price.</div>
+    <button class="btn" data-act="onb-next">Let's go</button>`;
+  if(st===1) body=`<h1 class="d" style="margin:0;font-size:58px">What do you<br>go <span style="color:var(--t-lime)">out for?</span></h1><div class="muted">Pick 2 or more. Those go first.</div>
+    <div class="grid2">${TYPES.map((t,i)=>{const on=o.types.includes(t.k);return `<button data-act="onb-type" data-v="${t.k}" aria-pressed="${on}" style="min-height:96px;border-radius:18px;padding:12px;text-align:left;display:flex;flex-direction:column;justify-content:space-between;gap:6px;cursor:pointer;${on?`background:${t.c};color:var(--night);border:2px solid var(--night);box-shadow:0 4px 0 ${t.c};transform:rotate(${i%2?1.5:-1.5}deg)`:"background:var(--smoke);border:1px solid var(--line)"}">${on?`<span style="width:24px;height:24px;border-radius:12px;background:var(--night);color:var(--paper);display:inline-flex;align-items:center;justify-content:center">${I.check}</span>`:`<span style="width:14px;height:14px;border-radius:7px;background:${t.c};border:1px solid var(--night)"></span>`}<span class="d" style="font-size:24px">${esc(t.l)}</span><span class="small" style="opacity:.8;font-weight:600">${esc(t.sub)}</span></button>`}).join("")}</div>
+    <button class="btn" data-act="onb-next" ${o.types.length<2?"disabled":""}>${o.types.length<2?"Pick "+(2-o.types.length)+" more":"Next ("+o.types.length+")"}</button>`;
+  if(st===2) body=`<h1 class="d" style="margin:0;font-size:60px">Bring<br>your <span style="color:var(--t-pink)">people.</span></h1>
+    <div class="muted" style="line-height:1.45">Poping shows who you know is going to an event. You choose whether you show up too. Change it anytime in Profile.</div>
+    <div class="col">${[["everyone","Show me","People I know see my face on events I'm going to."],["nobody","Keep me hidden","I can see others, nobody sees me."]].map(x=>`<button data-act="onb-vis" data-v="${x[0]}" aria-pressed="${o.vis===x[0]}" style="text-align:left;border-radius:18px;padding:14px;cursor:pointer;${o.vis===x[0]?"background:var(--paper);color:var(--night);border:2px solid var(--night);box-shadow:0 4px 0 var(--pink)":"background:var(--smoke);border:1px solid var(--line)"}"><b style="font-size:16px">${x[1]}</b><br><span class="small" style="opacity:.8">${x[2]}</span></button>`).join("")}</div>
+    <button class="btn" data-act="onb-done">Show me what's on</button>`;
+  return `<div class="row"><div class="row grow" style="gap:6px">${bars}</div>${myProfile()?.onboarded?'<a href="#profile" class="muted small" style="padding:12px 4px">Cancel</a>':'<button class="muted small" data-act="onb-skip" style="background:none;border:none;padding:12px 4px;cursor:pointer">Skip</button>'}</div>${body}`;
+}
+function vHelp(){
+  const Q=[["I forgot my code or my phone died","No problem. Give your name at the door and show ID: the organizer finds you on their guest list and lets you in. Your code is only a shortcut."],
+    ["My friend is coming separately","Open your ticket and tap \"Send a ticket to a friend\". They get their own code, so nobody waits outside for you."],
+    ["Can I get a refund?","Yes: tap \"I can't go anymore\" on your ticket up to 24 hours before it starts and your spot goes back on sale. Inside 24 hours, send it to a friend instead."],
+    ["Who can see that I'm going?","Only people you know, and only if you choose \"Show me\" in Profile. Hidden means nobody sees you."],
+    ["Is money actually charged?","Not yet. This MVP runs in test mode: tickets are real and work at the door, but no card is charged."],
+    ["How do organizers get paid?","$0.50 + 4% per paid ticket goes to Poping, card processing at cost, the rest to the organizer, the night of the event from their second event on (simulated in this MVP). Free events are free."]];
+  return `<div class="row"><a class="iconbtn" href="#profile" aria-label="Back">${I.back}</a><h1 class="d grow" style="margin:0;font-size:42px">Need a hand?</h1></div>
+  ${Q.map(q=>`<details class="faq"><summary>${esc(q[0])}</summary><p>${esc(q[1])}</p></details>`).join("")}
+  <div class="card col"><b>Report something</b><div class="muted small">Unsafe event, fake listing, harassment. If anyone is in danger, call 911 first.</div>
+  <form id="reportForm" class="col"><label class="field" for="repTxt">What happened?<textarea id="repTxt" class="input" required></textarea></label><button class="btn2" type="submit" style="border-width:2px">Send report</button></form></div>`;
+}
+/* ---- demo: download → sign-up ---- */
+function pushN(title,body,href,fill){ S.push={title,body,href,fill}; renderLayer(); clearTimeout(pushN.t); pushN.t=setTimeout(()=>{ S.push=null; renderLayer(); },7000); }
+function ringSVG(p){ const c=2*Math.PI*15; return `<svg class="ring" viewBox="0 0 38 38" aria-hidden="true"><circle cx="19" cy="19" r="15" fill="none" stroke="var(--smoke2)" stroke-width="4"/><circle cx="19" cy="19" r="15" fill="none" stroke="var(--pop)" stroke-width="4" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-p/100)}" transform="rotate(-90 19 19)"/></svg>`; }
+function vStore(){
+  const p=S.inst||0, L=listed();
+  const btn = p===0 ? `<button class="pill on" data-act="install" style="padding:0 22px">Get</button>`
+    : p<100 ? `<span class="row" style="gap:8px" role="progressbar" aria-valuenow="${p}" aria-valuemin="0" aria-valuemax="100">${ringSVG(p)}<span class="small muted">Installing… ${p}%</span></span>`
+    : `<button class="btn" data-act="openapp" style="width:auto;padding:0 26px;height:46px;font-size:18px">Open</button>`;
+  const pick=[L.find(e=>e.type==="party"),L.find(e=>e.type==="art"),L.find(e=>e.type==="culture")||L.find(e=>e.type==="popup")].filter(Boolean);
+  const caps=["What's on today","Your friends going","One all-in price"];
+  return `<div class="notice">Demo: this is what finding Poping in your phone's app store looks like.</div>
+  <div class="row" style="gap:16px;align-items:flex-start"><div class="appicon">pop<b>.</b></div>
+    <div class="grow col" style="gap:6px"><div class="dw" style="font-size:30px;line-height:1">Poping</div><div class="muted small">Downtown NYC events, one all-in price</div><div style="margin-top:6px">${btn}</div></div></div>
+  <div class="row small muted" style="gap:0;justify-content:space-between;border-block:1px solid var(--line);padding:10px 0;text-align:center">
+    <div class="grow"><b style="color:var(--fg);font-size:15px">Free</b><br>to download</div><div class="grow"><b style="color:var(--fg);font-size:15px">7</b><br>kinds of events</div><div class="grow"><b style="color:var(--fg);font-size:15px">NYC</b><br>Downtown first</div></div>
+  <div class="shots">${pick.map((e,k)=>`<div class="shot"><div style="pointer-events:none">${flyer(e,{h:200,font:30,radius:0,scale:.6})}</div><div class="cap">${caps[k]}</div></div>`).join("")}</div>
+  <div class="col" style="gap:8px"><b>About this app</b><div style="line-height:1.55;color:var(--fg2)">Parties, pop-ups, exhibitions, culture nights, comedy, live music and markets around Downtown NYC, in one stack of flyers. See which friends are going, get in with one all-in price, and save the maybes for later.</div></div>
+  <div class="col" style="gap:8px"><b>For organizers</b><div style="line-height:1.55;color:var(--fg2)">Post in minutes. $0.50 + 4% per paid ticket, free events stay free, paid out the night of from your second event.</div></div>`;
+}
+function vSplash(){ return `<div class="splash" role="img" aria-label="Poping"><div class="lg">poping<b>.</b></div><div class="sub">what's poppin downtown</div></div>`; }
+function authHead(n,title){ return `<div class="row"><div class="row grow" style="gap:6px">${[1,2,3,4].map(i=>`<span style="flex:1;height:4px;border-radius:2px;background:${i<=n?"var(--pop)":"var(--smoke2)"}"></span>`).join("")}</div></div><h1 class="d dropin" style="margin:10px 0 0;font-size:62px" aria-label="${esc(title.replace(/\n/g," "))}">${title.split("\n").map(l=>dropText(l)).join("<br>")}</h1>`; }
+function vSignup(){ const a=S.auth||{};
+  return `${authHead(1,"What's your\nnumber?")}<div class="muted">We text you a code. No passwords, ever.</div>
+  <form id="phoneForm" class="col"><label class="field" for="phIn">Mobile number<div class="row" style="gap:8px"><span class="input" style="width:72px;display:flex;align-items:center;justify-content:center;flex:none">+1</span><input id="phIn" class="input grow" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="(212) 555-0123" value="${esc(a.phone||"")}"></div></label>
+  <div id="phErr" class="small" role="alert" style="color:var(--t-pink);min-height:16px;font-weight:700">${esc(a.err||"")}</div>
+  <button class="btn" type="submit">Send code</button></form>
+  <div class="muted small" style="line-height:1.45">Demo: any 10-digit number works and nothing is sent. By continuing you agree to Poping's Terms and Privacy Policy.</div>`; }
+function vOtp(){ const a=S.auth||{};
+  return `${authHead(2,"Enter the\ncode")}<div class="muted">Sent to +1 ${esc(a.phone||"")}. <a href="#signup">Change</a></div>
+  <label class="field" for="otpIn">6-digit code<input id="otpIn" class="input otp${a.bad?" shake":""}" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="······"></label>
+  <div class="small" role="alert" style="color:var(--t-pink);min-height:16px;font-weight:700">${a.bad?"That code doesn't match. Check the text and try again.":""}</div>
+  <button class="btn2" data-act="resend">Text me a new code</button>`; }
+function vAbout(){ const a=S.auth||{};
+  return `${authHead(3,"What do we\ncall you?")}<div class="muted">Friends see your first name on events you go to, only if you let them.</div>
+  <form id="aboutForm" class="col"><label class="field" for="fnIn">First name<input id="fnIn" class="input" autocomplete="given-name" maxlength="30" value="${esc(a.first||"")}" placeholder="Maya"></label>
+  <label class="field" for="lnIn">Last name (optional)<input id="lnIn" class="input" autocomplete="family-name" maxlength="30" value="${esc(a.last||"")}"></label>
+  <label class="field" for="dobIn">Birthday<input id="dobIn" class="input" type="date" autocomplete="bday" value="${esc(a.dob||"")}"></label>
+  <div class="muted small">You need to be 18+ to use Poping. 21+ events still check ID at the door.</div>
+  <div class="small" role="alert" style="color:var(--t-pink);min-height:16px;font-weight:700">${esc(a.err||"")}</div>
+  <button class="btn" type="submit">Next</button></form>`; }
+function vFriends(){ const a=S.auth||{}, fr=["u_maya","u_jordan","u_sam","u_priya"];
+  return `${authHead(4,"Your people\nare here")}
+  ${a.contacts?`<div class="row" style="background:var(--lilac);color:var(--night);border:2px solid var(--night);border-radius:18px;padding:12px">${facesHTML(fr,36)}<div class="grow"><b>${fr.length} friends are on Poping</b><br><span class="small">${esc(fr.map(i=>nameOf(i).split(" ")[0]).join(", "))}</span></div></div>
+    <div class="muted small" style="line-height:1.45">You'll see their faces on events they're going to. They'll see yours only if you choose "Show me" next.</div>
+    <button class="btn" data-act="auth-next" data-v="notifs">Nice, next</button>`
+  :`<div class="muted" style="line-height:1.5">Find friends from your contacts so you can see who's going. We never text or invite anyone without you.</div>
+    <button class="btn lilac" data-act="perm" data-v="contacts">Find my friends</button>
+    <button class="btn2" data-act="auth-next" data-v="notifs">Skip for now</button>`}`; }
+function vNotifs(){
+  return `<div style="position:relative;height:150px"><span style="position:absolute;left:0;top:10px;width:120px;height:120px;border-radius:30px;background:var(--lime);border:2px solid var(--night);transform:rotate(-8deg);display:flex;align-items:center;justify-content:center;color:var(--night)">${I.bell.replace('width="18" height="18"','width="58" height="58"')}</span><span class="sticker wob" style="position:absolute;left:96px;top:0;background:var(--pink)">3 NEW</span></div>
+  <h1 class="d" style="margin:0;font-size:62px">Don't miss<br>the drop</h1>
+  <div class="col" style="gap:8px">${[["Thursday","The weekend drop: what's on Downtown"],["Day of","Your ticket, ready to go"],["Friends","When your people grab tickets"],["Waitlist","The second a spot opens"]].map(x=>`<div class="row" style="gap:10px"><span class="sticker" style="background:var(--paper);min-width:84px;text-align:center">${x[0]}</span><span>${x[1]}</span></div>`).join("")}</div>
+  <button class="btn" data-act="perm" data-v="notifs">Turn on notifications</button>
+  <button class="btn2" data-act="auth-done">Not now</button>`; }
+function vRate(){
+  const e=evById(S.param); if(!e) return `<a class="iconbtn" href="#tickets" aria-label="Back">${I.back}</a><div class="d" style="font-size:44px">Event not found.</div>`;
+  const r=S.rate||(S.rate={eid:e.id,score:0,tags:[]}); if(r.eid!==e.id){ S.rate={eid:e.id,score:0,tags:[]}; }
+  const R=S.rate, on=following().includes(e.hostId);
+  const words=["Mid","Fine","Good","Great","Iconic"], tags=["Lineup","Crowd","Venue","Value","Door was quick","Would go again"];
+  return `<div class="row"><a class="iconbtn" href="#tickets" aria-label="Back">${I.back}</a><div class="grow"></div></div>
+  <div style="width:150px;transform:rotate(-4deg);align-self:center">${flyer(e,{h:170,font:28,radius:18,scale:.55})}</div>
+  <h1 class="d" style="margin:0;font-size:52px;text-align:center">How was it?</h1>
+  <div class="muted" style="text-align:center;margin-top:-6px">${esc(e.name)} · two taps, we promise</div>
+  <div class="rate" role="radiogroup" aria-label="Rating">${words.map((w,k)=>`<button role="radio" aria-checked="${R.score===k+1}" class="${R.score===k+1?"on":""}" data-act="rate" data-v="${k+1}"><b>${k+1}</b>${w}</button>`).join("")}</div>
+  ${R.score?`<div class="label">What hit?</div><div class="row" style="flex-wrap:wrap;gap:8px">${tags.map(t=>`<button class="pill ${R.tags.includes(t)?"on":""}" data-act="ratetag" data-v="${esc(t)}">${esc(t)}</button>`).join("")}</div>
+  ${e.hostId&&!e.sample&&e.hostId!==S.me.id?`<button class="btn2" data-act="follow" data-v="${esc(e.hostId)}">${on?"Following "+esc(e.hostName):"Follow "+esc(e.hostName)+" for their next one"}</button>`:`<div class="notice">You'll get ${esc(e.hostName||"the organizer")}'s next event in your Drops.</div>`}
+  <button class="btn" data-act="rate-send">Send</button>`:""}`; }
+/* ---- organizer ---- */
+function vHost(){
+  const mine=S.events.filter(e=>e.hostId===S.me.id).sort((a,b)=>sMs(a)-sMs(b));
+  const up=mine.filter(e=>!isOver(e)&&!isCancelled(e)), past=mine.filter(e=>isOver(e)||isCancelled(e)).reverse();
+  const tix=activeTix().filter(t=>mine.some(e=>e.id===t.eventId&&!isCancelled(e))&&!t.comp);
+  const payout=tix.reduce((a,t)=>a+fees(t.unit||0).keep*(t.qty||1),0), viaP=tix.filter(t=>FOUND.includes(t.via)).reduce((a,t)=>a+(t.qty||1),0);
+  const list=S.hostTab==="upcoming"?up:past;
+  return `<span class="sticker" style="align-self:flex-start;background:var(--lime);transform:rotate(-3deg)">ORGANIZER MODE</span>
+  ${DEMO&&!DEMO.session().payouts?`<button class="row" data-act="payouts" style="text-align:left;background:var(--paper);color:var(--night);border:2px solid var(--night);border-radius:18px;padding:14px;cursor:pointer;box-shadow:0 4px 0 var(--shadow)"><span class="grow"><b>Get paid the night of</b><br><span class="small">Set up payouts once. Takes about 2 minutes.</span></span>${I.arrow}</button>`:""}
+  <h1 class="d" style="margin:0;font-size:56px">Your<br>events</h1>
+  <div class="grid3"><div class="stat"><div class="label" style="font-size:10px">Tickets</div><div class="n">${tix.reduce((a,t)=>a+(t.qty||1),0)}</div></div><div class="stat"><div class="label" style="font-size:10px">You keep</div><div class="n">${money(Math.round(payout))}</div></div><div class="stat"><div class="label" style="font-size:10px">Via Poping</div><div class="n">${viaP}</div></div></div>
+  <a class="btn" href="#create">${I.plus} Post an event</a>
+  <div class="seg" role="tablist">${[["upcoming","Upcoming"],["past","Past"]].map(x=>`<button role="tab" aria-selected="${S.hostTab===x[0]}" class="${S.hostTab===x[0]?"on":""}" data-act="hosttab" data-v="${x[0]}">${x[1]}</button>`).join("")}</div>
+  ${list.map(e=>{const s=soldOf(e.id),c=e.capacity||0,lv=sMs(e)<=Date.now()&&!isOver(e);return `<a href="#h-${e.id}" class="card col" style="text-decoration:none;color:var(--fg)"><div class="row">${thumbHTML(e)}<div class="grow"><span class="when">${esc(fmtWhen(e))}</span><br><b style="font-size:16px">${esc(e.name)}</b><br><span class="muted small">${esc(typeOf(e.type).l)} · ${e.price>0?money(e.price):"Free"} · ${e.public===false?"private · code "+esc(e.code):"public"}</span></div><span class="sticker" style="background:${isCancelled(e)?"var(--pink)":isOver(e)?"var(--smoke2)":lv?"var(--lime)":"var(--paper)"};color:${isOver(e)&&!isCancelled(e)?"var(--fg)":"var(--night)"}">${isCancelled(e)?"CANCELLED":isOver(e)?"DONE":lv?"LIVE":"ON SALE"}</span></div>${c?`<div class="bar"><i style="width:${Math.min(100,Math.round(s/c*100))}%"></i></div>`:""}<div class="muted small">${s}${c?" / "+c:""} going</div></a>`}).join("")}
+  ${!list.length?`<div class="card muted small" style="line-height:1.5">${S.hostTab==="upcoming"?"Nothing on sale. Post a party, pop-up, exhibition or show: it goes live in Discover for people Downtown, with a code for private ones.":"Finished and cancelled events show up here."}</div>`:""}`;
+}
+function newForm(){ const d=new Date(Date.now()+2*DAY); const pad=(n)=>String(n).padStart(2,"0"); return {name:"",hostName:S.me.name?S.me.name.split(" ")[0]+"'s events":"",type:myTypes()[0]||"party",sound:"House",date:`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`,time:"20:00",endDate:"",endTime:"",venue:"",address:"",area:"",price:15,capacity:150,color:typeOf(myTypes()[0]||"party").c,colorTouched:false,banner:"",banChanged:false,banErr:"",banBusy:false,extrasOpen:false,deco:"ring",public:true,rotating:false,lineup:"",listenUrl:"",dress:"",door:"",hours:"",blurb:"",age:"21+",err:""}; }
+function formFrom(e){ const pad=(n)=>String(n).padStart(2,"0"); const ds=(t)=>{const d=new Date(t);return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}, ts=(t)=>{const d=new Date(t);return `${pad(d.getHours())}:${pad(d.getMinutes())}`};
+  return {name:e.name||"",hostName:e.hostName||"",type:e.type||"party",sound:e.sound||"House",date:ds(sMs(e)),time:ts(sMs(e)),endDate:e.endsAt?ds(eMs(e)):"",endTime:e.endsAt?ts(eMs(e)):"",venue:e.venue||"",address:e.address||"",area:e.area||"",price:e.price||0,capacity:e.capacity||0,color:e.color||COLORS[0],colorTouched:true,banner:bannerOf(e.id),banChanged:false,banErr:"",banBusy:false,extrasOpen:!!(e.lineup||e.dress||e.door||e.blurb||e.rotating),deco:e.deco||"ring",public:e.public!==false,rotating:!!e.rotating,lineup:e.lineup||"",listenUrl:e.listenUrl||"",dress:e.dress||"",door:e.door||"",hours:e.hours||"",blurb:e.blurb||"",age:e.age||"21+",err:""}; }
+function previewHTML(){ const f=S.form; return `<div style="width:130px;flex:none;transform:rotate(-3deg)">${flyer({name:f.name||"Your event",color:f.color,deco:f.deco},{h:160,font:26,radius:18,scale:.5,banner:f.banner||"",label:true})}</div>`; }
+function feeHTML(){ const f=S.form, p=Number(f.price)||0, x=fees(p), cap=Number(f.capacity)||0;
+  return p>0?`<div class="between"><span>Ticket price (all-in)</span><b>${money2(p)}</b></div><div class="between"><span>Poping fee ($0.50 + 4%)</span><span>−${money2(x.pop)}</span></div><div class="between"><span>Card processing (at cost)</span><span>−${money2(x.card)}</span></div><div class="between" style="border-top:2px solid var(--night);padding-top:8px"><b>You keep per ticket</b><span class="dw" style="font-size:30px">${money2(x.keep)}</span></div>${cap?`<div class="small" style="font-weight:600">${money(Math.round(x.keep*cap))} if you sell all ${cap}, paid the night of.</div>`:""}`
+  : `<div class="between"><b>Free event</b><span class="dw" style="font-size:30px">$0</span></div><div class="small" style="font-weight:600">Free events are free for you and your guests. RSVPs still get a door code.</div>`; }
+function vCreate(){
+  const f=S.form, editing=!!S.editId, T=f.type;
+  const step=(n,t)=>`<div class="step"><i>${n}</i><b>${t}</b></div>`;
+  return `<div class="row"><a class="iconbtn" href="${editing?"#h-"+S.editId:"#host"}" aria-label="Back">${I.back}</a><h1 class="d grow" style="margin:0;font-size:46px">${editing?"Edit <span style='color:var(--t-pop)'>event</span>":"Post an <span style='color:var(--t-pop)'>event</span>"}</h1></div>
+  <form id="createForm" class="col" novalidate>
+  ${step(1,"What is it")}
+  <div class="chips" role="radiogroup" aria-label="Type">${TYPES.map(t=>`<button type="button" role="radio" aria-checked="${T===t.k}" class="pill ${T===t.k?"on":""}" data-act="ftype" data-v="${t.k}"><span class="sw" style="background:${t.c}"></span>${esc(t.l)}</button>`).join("")}</div>
+  <label class="field" for="fName">Event name<input id="fName" class="input" data-f="name" value="${esc(f.name)}" placeholder="${T==="art"?"Paper Moons: group show":T==="popup"?"Thrift Swap Pop-up":T==="comedy"?"Basement Comedy Hour":T==="market"?"Makers Market":T==="culture"?"Diwali Garba Night":T==="music"?"Late Set Jazz":"Warehouse Disco"}" maxlength="40" required></label>
+  <label class="field" for="fHost">Presented by<input id="fHost" class="input" data-f="hostName" value="${esc(f.hostName)}" placeholder="Your collective, gallery or brand" maxlength="40"></label>
+  ${T==="party"?`<label class="field" for="fSound">Sound<select id="fSound" class="input" data-f="sound">${SOUNDS.map(x=>`<option ${f.sound===x?"selected":""}>${esc(x)}</option>`).join("")}</select></label>`:""}
+  <div class="card col" style="gap:10px">
+    <div><b>Poster</b><div class="muted small" style="line-height:1.45">${f.banner?"Your image is the flyer. Swap it anytime.":"Upload your poster or a photo. No image? We design a flyer for you."}</div></div>
+    <div class="row" style="align-items:center;gap:14px"><span id="preview">${previewHTML()}</span>
+    <div class="col grow" style="gap:8px;min-width:0">
+      <label class="btn2 upl" style="cursor:pointer;position:relative;border:2px dashed var(--ash)">${I.image} ${f.banBusy?"Shrinking…":f.banner?"Change image":"Upload image"}<input id="fBanner" class="sr" type="file" accept="image/*" aria-label="Upload a poster image"></label>
+      ${f.banner?`<button type="button" class="btn2" data-act="fban-rm">Use a designed flyer</button>`
+      :`<div class="label">Or style it</div><div class="row" style="flex-wrap:wrap;gap:6px">${COLORS.map(c=>`<button type="button" data-act="fcolor" data-v="${c}" aria-label="Flyer color" aria-pressed="${f.color===c}" style="width:30px;height:30px;border-radius:15px;background:${c};cursor:pointer;border:${f.color===c?"3px solid var(--fg)":"2px solid var(--night)"}"></button>`).join("")}</div>
+      <div class="row" style="gap:6px;flex-wrap:wrap">${DECOS.map(d=>`<button type="button" class="pill ${f.deco===d?"on":""}" data-act="fdeco" data-v="${d}" style="height:32px;padding:0 10px;font-size:12px">${d}</button>`).join("")}</div>`}
+    </div></div>
+    ${f.banErr?`<div class="small" style="color:var(--t-pink);font-weight:700">${esc(f.banErr)}</div>`:""}
+    <div class="muted small">JPG or PNG. Portrait (4:5) looks best; we crop to fit each screen.</div></div>
+  ${step(2,"When and where")}
+  <div class="grid2"><label class="field" for="fDate">Starts<input id="fDate" type="date" class="input" data-f="date" value="${esc(f.date)}"></label><label class="field" for="fTime">Time<input id="fTime" type="time" class="input" data-f="time" value="${esc(f.time)}"></label></div>
+  <div class="grid2"><label class="field" for="fEDate">Ends (optional)<input id="fEDate" type="date" class="input" data-f="endDate" value="${esc(f.endDate)}"></label><label class="field" for="fETime">Time<input id="fETime" type="time" class="input" data-f="endTime" value="${esc(f.endTime)}"></label></div>
+  ${["art","market","popup"].includes(T)?`<label class="field" for="fHours">Opening hours, if it runs several days<input id="fHours" class="input" data-f="hours" value="${esc(f.hours)}" placeholder="Wed–Sun, 11 AM–6 PM" maxlength="40"></label>`:""}
+  <label class="field" for="fVenue">Venue<input id="fVenue" class="input" data-f="venue" value="${esc(f.venue)}" placeholder="${T==="art"?"Gallery 291":"The Annex"}" maxlength="50"></label>
+  <div class="grid2"><label class="field" for="fArea">Neighborhood<input id="fArea" class="input" data-f="area" value="${esc(f.area)}" placeholder="East Village" maxlength="30"></label><label class="field" for="fAddr">Street address<input id="fAddr" class="input" data-f="address" value="${esc(f.address)}" placeholder="Hidden on private events" maxlength="60"></label></div>
+  ${step(3,"Tickets")}
+  <div class="grid2"><label class="field" for="fPrice">All-in price ($, 0 = free)<input id="fPrice" type="number" min="0" max="500" step="1" inputmode="numeric" class="input" data-f="price" value="${esc(f.price)}"></label><label class="field" for="fCap">Capacity<input id="fCap" type="number" min="1" max="5000" step="1" inputmode="numeric" class="input" data-f="capacity" value="${esc(f.capacity)}"></label></div>
+  <div id="fees" style="background:var(--paper);color:var(--night);border:2px solid var(--night);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:7px;box-shadow:0 5px 0 var(--shadow);font-size:14px">${feeHTML()}</div>
+  <label class="field" for="fAge">Age<select id="fAge" class="input" data-f="age">${["21+","18+","All ages"].map(a=>`<option ${f.age===a?"selected":""}>${a}</option>`).join("")}</select></label>
+  <div class="seg" role="radiogroup" aria-label="Visibility"><button type="button" role="radio" aria-checked="${f.public}" class="${f.public?"on":""}" data-act="fpub" data-v="1">Public</button><button type="button" role="radio" aria-checked="${!f.public}" class="${!f.public?"on":""}" data-act="fpub" data-v="0">Private · code</button></div>
+  <div class="muted small" style="line-height:1.45">${f.public?"Shows in Discover for people Downtown into "+esc(typeOf(T).l)+".":"Hidden from Discover. You get a code to share; the address unlocks with a ticket. Codes keep it unlisted, not secret."}</div>
+  ${step(4,"Extras")}
+  <details class="extras" ${f.extrasOpen?"open":""}><summary data-act="fextras"><span>${T==="art"?"Artists":T==="comedy"?"Comics":"Lineup"}, dress code, door info, about <span class="muted small" style="font-weight:600">· optional</span></span>${I.chev}</summary><div class="in">
+    <label class="field" for="fLineup">${T==="art"?"Artists":T==="comedy"?"Comics":"Lineup"}<input id="fLineup" class="input" data-f="lineup" value="${esc(f.lineup)}" placeholder="Who's on" maxlength="120"></label>
+    <label class="field" for="fListen">Link to hear or see them<input id="fListen" type="url" class="input" data-f="listenUrl" value="${esc(f.listenUrl)}" placeholder="https://soundcloud.com/…" maxlength="300"></label>
+    <div class="grid2"><label class="field" for="fDress">Dress code<input id="fDress" class="input" data-f="dress" value="${esc(f.dress)}" placeholder="Anything goes" maxlength="40"></label><label class="field" for="fDoor">Door<input id="fDoor" class="input" data-f="door" value="${esc(f.door)}" placeholder="${T==="party"?"Last entry 1 AM":"Doors 7 PM"}" maxlength="40"></label></div>
+    <label class="field" for="fBlurb">About<textarea id="fBlurb" class="input" data-f="blurb" maxlength="400" placeholder="What to expect">${esc(f.blurb)}</textarea></label>
+    <button type="button" class="row" data-act="frot" role="switch" aria-checked="${!!f.rotating}" style="text-align:left;background:var(--smoke);border:1px solid var(--line);border-radius:16px;padding:12px;cursor:pointer;width:100%">
+      <span class="grow"><b>Anti-screenshot mode</b><br><span class="muted small">Ticket codes change every 15 seconds. For big or sold-out nights where resale is a risk.</span></span>
+      <span style="flex:none;width:52px;height:30px;border-radius:15px;background:${f.rotating?"var(--lime)":"var(--smoke2)"};position:relative;border:2px solid var(--night)"><span style="position:absolute;top:2px;${f.rotating?"right:2px":"left:2px"};width:22px;height:22px;border-radius:11px;background:${f.rotating?"var(--night)":"var(--ash)"}"></span></span></button>
+  </div></details>
+  <div id="fErr" class="small" role="alert" style="color:var(--t-pink);min-height:16px;font-weight:700">${esc(f.err)}</div>
+  <button class="btn" type="submit">${editing?"Save changes":"Post it"}</button></form>`;
+}
+function vLive(){
+  const e=evById(S.param); if(!e) return `<div class="skel" style="height:200px"></div>`;
+  return `<div class="row" style="justify-content:flex-end"><a class="iconbtn" href="#host" aria-label="Close">${I.close}</a></div>
+  <h1 class="d" style="margin:0;font-size:96px;line-height:.8">It's<br><span style="color:var(--t-lime)">live.</span></h1>
+  <div class="row" style="gap:14px"><div style="width:130px;flex:none;transform:rotate(-4deg)">${flyer(e,{h:160,font:26,radius:18,scale:.5})}</div><div class="muted" style="line-height:1.5">${e.public===false?"Private event. Share this code with your guests:":esc(e.name)+" is on Discover for people Downtown into "+esc(typeOf(e.type).l)+"."}</div></div>
+  ${e.public===false?`<div class="dw" style="font-size:54px;letter-spacing:6px;color:var(--t-lilac);text-align:center">${esc(e.code)}</div>`:""}
+  <button class="btn2" data-act="share" data-v="${e.id}">${I.share} Copy invite text</button>
+  <a class="btn" href="#h-${e.id}">Watch it fill up</a>`;
+}
+function vNight(){
+  const e=evById(S.param);
+  if(!e) return `<a class="iconbtn" href="#host" aria-label="Back">${I.back}</a><div class="d" style="font-size:44px">Event not found.</div>`;
+  if(e.hostId!==S.me.id) return `<a class="iconbtn" href="#p-${e.id}" aria-label="Back">${I.back}</a><div class="d" style="font-size:44px">Organizers only.</div><div class="muted">Only the organizer who posted this event can open its dashboard.</div>`;
+  const all=activeTix().filter(t=>t.eventId===e.id), paid=all.filter(t=>!t.comp), sold=all.reduce((a,t)=>a+(t.qty||1),0), inRoom=all.reduce((a,t)=>a+(t.checkedIn||0),0), cap=e.capacity||0;
+  const via=(k)=>paid.filter(t=>k.includes(t.via)).reduce((a,t)=>a+(t.qty||1),0), tot=paid.reduce((a,t)=>a+(t.qty||1),0);
+  const vp=via(FOUND), vl=via(["link","code","direct","gift"]), vo=Math.max(0,tot-vp-vl), pct=(n)=>tot?Math.round(n/tot*100):0;
+  const gross=paid.reduce((a,t)=>a+(t.total||0),0), f=fees(e.price||0), pq=paid.filter(t=>t.total>0).reduce((a,t)=>a+(t.qty||1),0), popFee=r2(f.pop*pq), card=r2(f.card*pq), payout=r2(gross-popFee-card);
+  const firstEvent=S.events.filter(x=>x.hostId===S.me.id&&!isCancelled(x)&&(x.createdAt||0)<(e.createdAt||0)).length===0;
+  const live=sMs(e)<Date.now()&&!isOver(e), dm=S.doorMsg, q=S.doorQ.trim().toLowerCase();
+  const guests=all.map(t=>({t,n:t.comp?(t.guestName||"Guest"):nameOf(t.holderId)})).filter(g=>!q||g.n.toLowerCase().includes(q)).sort((a,b)=>((a.t.checkedIn||0)>=a.t.qty)-((b.t.checkedIn||0)>=b.t.qty)||a.n.localeCompare(b.n));
+  return `<div class="row"><a class="iconbtn" href="#host" aria-label="Back to your events">${I.back}</a><div class="grow"><div class="row small" style="gap:6px;font-weight:800;color:${live?"var(--t-lime)":"var(--ash)"}">${isCancelled(e)?"CANCELLED":live?'<span class="livedot"></span>LIVE NOW':esc(fmtWhen(e).toUpperCase())}</div><h1 class="dw" style="margin:0;font-size:24px">${esc(e.name)}</h1></div><a class="pill" href="#edit-${e.id}">Edit</a></div>
+  ${!bannerOf(e.id)&&!isCancelled(e)&&!isOver(e)?`<a href="#edit-${e.id}" class="row" style="text-decoration:none;color:var(--fg);border:2px dashed var(--line);border-radius:16px;padding:10px 12px;gap:10px">${I.image}<span class="grow small"><b>Add your poster</b><br><span class="muted">Events with their own image stand out in Discover.</span></span><span class="muted">›</span></a>`:""}
+  <div class="grid2"><div style="background:var(--paper);color:var(--night);border:2px solid var(--night);border-radius:20px;padding:14px"><div class="small" style="font-weight:800">GOING</div><div class="d" style="font-size:56px;line-height:.95">${sold}<span style="font-size:22px">${cap?" / "+cap:""}</span></div></div><div class="stat" style="border-radius:20px;padding:14px"><div class="small muted" style="font-weight:800">IN THE ROOM</div><div class="d" style="font-size:56px;line-height:.95">${inRoom}<span style="font-size:22px;color:var(--ash)"> / ${sold}</span></div></div></div>
+  <div class="card col"><b>Door</b>
+    ${DEMO?`<button class="btn" data-act="scan" data-v="${e.id}">${I.scan} Scan tickets</button>`:""}
+    <form id="doorForm" class="row"><input id="doorIn" class="input grow" autocomplete="off" autocapitalize="characters" maxlength="40" placeholder="Ticket code" style="font-family:var(--display);font-weight:900;font-stretch:75%;font-size:22px;letter-spacing:3px" aria-label="Ticket code"><button class="${DEMO?"btn2":"btn"}" type="submit" style="width:auto;padding:0 16px;height:50px;${DEMO?"border-width:2px":"font-size:18px"}">Check</button></form>
+    ${dm?`<div role="status" style="border-radius:14px;padding:12px;font-weight:800;${dm.ok?"background:var(--lime);color:var(--night)":"background:var(--pink);color:var(--night)"}">${esc(dm.text)}</div>`:""}
+    <div class="muted small">No code? Search their name, check ID, tap Let in.</div>
+    <input id="doorQ" class="input" autocomplete="off" placeholder="Search guest list by name" value="${esc(S.doorQ)}" aria-label="Search guest list">
+    <div id="guestList" class="col" style="gap:0">${guestRows(guests)}</div>
+    <form id="compForm" class="row" style="margin-top:6px"><input id="compName" class="input grow" maxlength="40" placeholder="Add comp: DJ, artist, friend" aria-label="Comp guest name"><input id="compQty" class="input" type="number" min="1" max="10" value="1" style="width:70px" aria-label="How many"><button class="btn2" type="submit" style="width:auto">Add</button></form>
+  </div>
+  <div class="card col"><b>Who found you</b>
+    <div style="display:flex;height:14px;border-radius:7px;overflow:hidden;gap:2px;background:var(--smoke2)" role="img" aria-label="${pct(vl)}% your link or code, ${pct(vp)}% found you on Poping">${tot?`<i style="width:${pct(vl)}%;background:var(--fg)"></i><i style="width:${pct(vp)}%;background:var(--pop)"></i><i style="width:${pct(vo)}%;background:var(--lilac)"></i>`:""}</div>
+    <div class="between small"><span>Your link, code or friends</span><b>${pct(vl)}%</b></div>
+    <div class="between small"><span style="color:var(--pop)">Found you on Poping</span><b>${pct(vp)}%</b></div></div>
+  ${e.price>0?`<div style="background:var(--paper);color:var(--night);border:2px solid var(--night);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:8px;box-shadow:0 5px 0 var(--lime)">
+    <div class="between"><span class="small" style="font-weight:800;letter-spacing:1px">PAYOUT · SIMULATED</span><span class="small" style="font-weight:800;color:var(--ok)">${isOver(e)?"Sent":"Scheduled"}</span></div>
+    <div class="d" style="font-size:58px;line-height:.95">${money2(payout)}</div>
+    <div style="font-size:13px;line-height:1.45">${firstEvent?"Your first event pays out on the standard schedule. From your second, payouts land the night of.":"Lands the night of, about 15 minutes after the event ends."}</div>
+    <div style="display:flex;flex-direction:column;gap:5px;font-size:13px;border-top:1px solid #C9C0B3;padding-top:8px"><div class="between"><span>${pq} paid tickets</span><span>${money2(gross)}</span></div><div class="between" style="color:#5E5850"><span>Poping fee</span><span>−${money2(popFee)}</span></div><div class="between" style="color:#5E5850"><span>Card processing</span><span>−${money2(card)}</span></div></div></div>`:""}
+  <button class="btn2" data-act="share" data-v="${e.id}">${I.share} Copy invite text</button>
+  ${e.public===false?`<div class="muted small">Private code: <b style="color:var(--t-lilac)">${esc(e.code)}</b></div>`:""}
+  ${isCancelled(e)?"":`<button class="btn2" data-act="cancel-ask" data-v="${e.id}" style="color:var(--t-pink);border-color:var(--pink)">Cancel this event</button>`}`;
+}
+function guestRows(guests){
+  return guests.map(({t,n})=>{ const done=(t.checkedIn||0)>=t.qty; return `<div class="row" style="border-bottom:1px solid var(--smoke2);padding:8px 0">${t.comp?`<span class="thumb" style="width:28px;height:28px;border-radius:14px;font-size:10px;background:var(--sun)">C</span>`:facesHTML([t.holderId],28)}<div class="grow"><b>${esc(n)}</b><br><span class="muted small">${t.comp?"comp":t.qty+" ticket"+(t.qty>1?"s":"")} · ${t.checkedIn||0}/${t.qty} in</span></div>${done?`<span class="small" style="font-weight:800;color:var(--t-lime);display:flex;align-items:center;gap:4px;padding:0 6px">${I.check} In</span>`:`<button class="pill on" data-act="letin" data-v="${t.id}" style="background:var(--lime);border-color:var(--night);color:var(--night)">${I.check} Let in</button>`}</div>`; }).join("") || '<div class="muted small" style="padding:8px 0">No one on the list yet.</div>';
+}
+function sheetHTML(){
+  const sh=S.sheet; if(!sh) return "";
+  const head=(title,sub)=>`<div class="grab"></div><div class="between" style="align-items:flex-start"><div><h2 class="d" style="margin:0;font-size:40px">${title}</h2><div class="muted small">${sub}</div></div><button class="iconbtn" data-act="sheet-close" aria-label="Close" style="background:var(--paper2);border-color:var(--paper2);color:var(--night)">${I.close}</button></div>`;
+  const wrap=(inner,label)=>`<div class="scrim" data-act="sheet-close-bg"><div class="sheet" role="dialog" aria-modal="true" aria-label="${label}" data-stop="1">${inner}</div></div>`;
+  if(sh.type==="buy"){
+    const e=evById(sh.eventId); if(!e) return "";
+    const left=leftOf(e), max=Math.min(8,left), q=Math.min(sh.qty,max), total=(e.price||0)*q;
+    return wrap(`${head(e.price>0?"Grab tickets":"RSVP",esc(e.name)+" · "+esc(fmtWhen(e)))}
+    <div class="row" style="background:#fff;border:2px solid var(--night);border-radius:18px;overflow:hidden;gap:0"><div class="grow" style="padding:14px"><b>${e.price>0?"General admission":"RSVP"}</b><div class="muted small">${e.price>0?money(e.price)+" all-in":"Free"}${e.capacity?" · "+left+" left":""}</div></div><div style="width:0;height:64px;border-left:2px dashed #C9C0B3"></div>
+      <div class="row" style="padding:0 10px;gap:6px"><button class="qtybtn" data-act="qty" data-v="-1" aria-label="One fewer" ${q<=1?"disabled":""}>−</button><span class="dw" style="width:26px;text-align:center;font-size:26px" aria-live="polite">${q}</span><button class="qtybtn plus" data-act="qty" data-v="1" aria-label="One more" ${q>=max?"disabled":""}>+</button></div></div>
+    <div class="between" style="border-top:2px solid var(--night);padding-top:12px"><span class="muted">${q} ${e.price>0?"ticket":"spot"}${q>1?"s":""}, all-in</span><span class="dw" style="font-size:44px;line-height:1">${total>0?money(total):"Free"}</span></div>
+    ${q>1?'<div class="muted small">Coming separately? After this, send each friend their own ticket.</div>':""}
+    ${e.price>0?'<div style="background:#FFF7D6;border:2px solid var(--night);border-radius:12px;padding:10px 12px;font-size:12px;font-weight:600;line-height:1.4">Test mode: your ticket is real and works at the door, but no card is charged in this MVP.</div>':""}
+    <div class="small" style="color:var(--err);min-height:14px;font-weight:700">${esc(sh.err||"")}</div>
+    <button class="btn" data-act="pay" ${sh.busy||!S.me.id?"disabled":""}>${!S.me.id?"Sign in to get tickets":sh.busy?"Saving…":e.price>0?"Pay "+money(total)+" (test)":"Confirm RSVP"}</button>
+    <div class="muted small" style="text-align:center">${e.price>0?"What you see is what you pay. Full refund up to 24 hours before.":"Free. You'll get a door code like any ticket."}</div>`,"Get tickets");
+  }
+  if(sh.type==="send"){
+    const t=S.tickets.find(x=>x.id===sh.ticketId), e=t&&evById(t.eventId); if(!t||!e) return "";
+    return wrap(`${head("Send a ticket",esc(e.name)+" · you have "+t.qty)}
+      <div class="muted small">Pick someone in your organization. They get their own ticket and code; you keep ${t.qty-1}.</div>
+      <input id="sendQ" class="input" autocomplete="off" placeholder="Search a name" value="${esc(sh.q||"")}" aria-label="Search people">
+      <div id="sendHits" class="col" style="gap:6px">${sendHits()}</div>
+      <div class="small" style="color:var(--err);min-height:14px;font-weight:700">${esc(sh.err||"")}</div>`,"Send a ticket");
+  }
+  if(sh.type==="cantgo"){
+    const t=S.tickets.find(x=>x.id===sh.ticketId), e=t&&evById(t.eventId); if(!t||!e) return "";
+    const ok=(sMs(e)-Date.now())>24*HOUR || !(t.total>0);
+    return wrap(`${head("Can't go?",esc(e.name))}
+      ${ok?`<div style="line-height:1.5">${t.total>0?`We'll release your ${t.qty} ticket${t.qty>1?"s":""} and refund <b>${money2(t.total)}</b> (test mode, nothing was charged).`:`We'll release your spot${t.qty>1?"s":""} so someone else can come.`} This can't be undone.</div>
+      <button class="btn" data-act="release" data-v="${t.id}" style="background:var(--pink)">Release ${t.qty>1?"my tickets":"my ticket"}</button>`
+      :`<div style="line-height:1.5">It's less than 24 hours before the event, so refunds are up to the organizer. The fastest fix: give your ticket to a friend who can go.</div>
+      <button class="btn dark" data-act="send-from-cant" data-v="${t.id}">Give it to a friend</button>`}
+      <button class="btn2" data-act="sheet-close" style="color:var(--night);border-color:var(--night)">Keep my ticket</button>`,"Can't go");
+  }
+  if(sh.type==="perm"){
+    const c=sh.kind==="contacts";
+    return `<div class="dlgwrap"><div class="dlg" role="dialog" aria-modal="true" aria-label="Permission"><div class="appicon" style="width:56px;height:56px;border-radius:16px;font-size:16px;margin:0 auto;transform:none">pop<b>.</b></div>
+      <b style="font-size:17px">“Poping” would like to ${c?"access your contacts":"send you notifications"}</b>
+      <div class="small" style="color:#5E5850;line-height:1.45">${c?"Used only to find friends already on Poping. Nobody gets texted.":"Weekend drops, day-of tickets, friends going and waitlist spots. Turn off anytime."}</div>
+      <div class="grid2"><button class="btn2" data-act="perm-no" style="color:var(--night);border-color:var(--night)">Don't allow</button><button class="btn2 solid" data-act="perm-yes">Allow</button></div>
+      <div class="small" style="color:#5E5850">Demo: no real permission is requested.</div></div></div>`;
+  }
+  if(sh.type==="wallet"){
+    const t=S.tickets.find(x=>x.id===sh.ticketId), e=t&&evById(t.eventId); if(!t||!e) return "";
+    return wrap(`${head("Added",esc(e.name))}
+      <div style="border-radius:22px;overflow:hidden;border:2px solid var(--night);background:var(--night);color:var(--paper);animation:deal .5s cubic-bezier(.2,.9,.3,1.2) both">
+        <div style="background:${esc(e.color||"#FF5B1F")};height:14px"></div>
+        <div style="padding:14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center">
+          <div><div class="small" style="color:#A8A096;font-weight:800">POPING</div><div class="dw" style="font-size:22px;line-height:1.05">${esc(e.name)}</div><div class="small" style="margin-top:6px">${esc(fmtWhen(e))} · ${esc(e.venue||"")}</div><div class="small" style="color:#A8A096">${t.qty} ${t.qty>1?"people":"person"} · ${esc(nameOf(t.holderId))}</div></div>
+          <div style="width:84px;height:84px;background:#fff;border-radius:10px;padding:6px" id="wqr"></div></div></div>
+      <div class="muted small" style="line-height:1.45">Your pass pops up on your lock screen when you get close to the venue. Demo: shown here, not added to a real wallet.</div>
+      <button class="btn dark" data-act="sheet-close">Done</button>`,"Wallet pass");
+  }
+  if(sh.type==="payouts"){
+    const st=sh.step||0;
+    return wrap(`${head("Get paid","Same night, from your second event")}
+      <div class="col" style="gap:8px">${["Verify it's you","Where money goes","You're set"].map((x,k)=>`<div class="step-row" style="cursor:default;${k<st?"background:var(--lime)":""}"><i>${k<st?"✓":k+1}</i>${x}</div>`).join("")}</div>
+      <div class="notice" style="background:#fff;color:#5E5850;border-color:#C9C0B3">In the real app this is Stripe's secure onboarding, so Poping never holds your money. Demo: nothing is collected here.</div>
+      ${st>=3?`<button class="btn" data-act="sheet-close">Back to my events</button>`:`<button class="btn" data-act="payout-go" ${sh.busy?"disabled":""}>${sh.busy?"Connecting…":st===0?"Start":"Continue"}</button>`}`,"Set up payouts");
+  }
+  if(sh.type==="scan"){
+    const e=evById(sh.eventId), r=sh.result;
+    return wrap(`${head("Scan","Point at the guest's ticket")}
+      ${r?`<div style="border-radius:20px;border:2px solid var(--night);padding:16px;text-align:center;background:${r.ok?"var(--lime)":"var(--pink)"};animation:bigin .4s cubic-bezier(.2,.9,.3,1.4) both"><div class="d" style="font-size:44px">${r.ok?"Let in":"Stop"}</div><div style="font-weight:800;font-size:17px;margin-top:6px">${esc(r.name)}</div><div class="small" style="font-weight:700">${esc(r.sub)}</div></div>`
+      :`<div class="scanbox" aria-label="Camera viewfinder"><i></i></div><div class="muted small" style="text-align:center">Demo: scanning the next guest on your list…</div>`}
+      ${r?`<button class="btn" data-act="scan-next">Scan next</button>`:""}
+      <button class="btn2" data-act="sheet-close" style="color:var(--night);border-color:var(--night)">Done</button>`,"Scan tickets");
+  }
+  if(sh.type==="demo"){
+    const fan=[["signup","Start over: download and sign up"],["remind","Day-of reminder arrives"],["friendbuy","A friend grabs a ticket"],["door","Get scanned at the door"],["ended","Event ends, rate it"],["drop","Thursday's weekend drop"]];
+    const org=[["payouts","Set up same-night payouts"],["sell","A ticket sells to your event"],["scan","Scan guests at your door"],["payout","Your event ends, payout lands"]];
+    const rowsH=(L,o)=>L.map((x,k)=>`<button class="step-row" data-act="demo-step" data-v="${x[0]}"><i>${k+1+o}</i><span class="grow">${x[1]}</span>${I.play2}</button>`).join("");
+    return wrap(`${head("Demo journey","Jump to moments that happen later in real life")}
+      <div class="label" style="color:#5E5850">As a fan</div>${rowsH(fan,0)}
+      <div class="label" style="color:#5E5850;margin-top:4px">As an organizer</div>${rowsH(org,fan.length)}
+      <div class="muted small">Your taps are saved in this browser. "Start over" wipes them.</div>`,"Demo journey");
+  }
+  if(sh.type==="cancel"){
+    const e=evById(sh.eventId); if(!e) return ""; const n=holdersOf(e.id).length;
+    return wrap(`${head("Cancel event?",esc(e.name))}
+      <div style="line-height:1.5">${n?`${n} ${n>1?"people have":"person has"} tickets. They'll see it's cancelled and get refunded (test mode).`:"Nobody has tickets yet."} The event comes off Discover. This can't be undone.</div>
+      <button class="btn" data-act="cancel-do" data-v="${e.id}" style="background:var(--pink)">Cancel event</button>
+      <button class="btn2" data-act="sheet-close" style="color:var(--night);border-color:var(--night)">Keep it</button>`,"Cancel event");
+  }
+  return "";
+}
+function sendHits(){
+  const sh=S.sheet; if(!sh) return "";
+  if(sh.loading) return '<div class="muted small">Searching…</div>';
+  const hits=(sh.hits||[]).filter(h=>h.id!==S.me.id);
+  if(!(sh.q||"").trim()) return '<div class="muted small">Start typing a name.</div>';
+  if(!hits.length) return '<div class="muted small">No one found. They need to be in your organization.</div>';
+  return hits.map(h=>`<button class="row" data-act="send-to" data-v="${esc(h.id)}" style="background:#fff;border:2px solid var(--night);border-radius:14px;padding:8px 10px;cursor:pointer;text-align:left;width:100%"><img src="${esc(h.avatarUrl)}" alt="" style="width:32px;height:32px;border-radius:16px"><span class="grow" style="font-weight:700"></span><span class="small" style="font-weight:800">Send</span></button>`).join("");
+}
+function navHTML(){
+  if(S.route==="welcome"||S.route==="yay"||AUTH.includes(S.route)) return "";
+  const tabs=[["discover","Discover",["discover","search","event","code","drops"]],["tickets","Tickets",["tickets","ticket"]],["host","Host",["host","create","edit","night","live"]],["profile","Profile",["profile","help"]]];
+  const up=activeTix().filter(t=>t.holderId===S.me.id&&evById(t.eventId)&&!isOver(evById(t.eventId))&&!isCancelled(evById(t.eventId))).length;
+  return `<div class="in">${tabs.map(t=>`<a href="#${t[0]}" class="${t[2].includes(S.route)?"on":""}" ${t[2].includes(S.route)?'aria-current="page"':""}>${NAVI[t[0]]}${t[1]}${t[0]==="tickets"&&up?`<span class="badge">${up}</span>`:""}</a>`).join("")}</div>`;
+}
+/* The overlay layer has three parts updated separately, so a toast or a live data update never rebuilds an open sheet
+   (rebuilding replayed its slide-in animation and swallowed taps on Pay). */
+let LSH={html:null,obj:null,toast:null,push:null};
+function renderLayer(){
+  const L=$("#layer"); if(!L.firstChild){ L.innerHTML='<div id="lsheet"></div><div id="ltoast"></div><div id="lpush"></div>'; }
+  const ae=document.activeElement, keepSend=ae&&ae.id==="sendQ";
+  const sh=sheetHTML();
+  if(sh!==LSH.html){
+    const host=$("#lsheet"), same=S.sheet&&S.sheet===LSH.obj&&LSH.html;
+    const prevScroll=host.querySelector(".sheet")?.scrollTop||0;
+    host.innerHTML=sh;
+    if(same){ host.querySelectorAll(".sheet,.dlg").forEach(x=>x.classList.add("still")); const nsh=host.querySelector(".sheet"); if(nsh) nsh.scrollTop=prevScroll; }
+    LSH.html=sh; LSH.obj=S.sheet;
+    fillSendNames(); paintWallet();
+  }
+  const th=(S.toast?`<div class="toast" role="status">${esc(S.toast)}</div>`:"");
+  if(th!==LSH.toast){ $("#ltoast").innerHTML=th; LSH.toast=th; }
+  const ph=(S.push?`<button class="push" data-act="push" role="status"><span class="pi">pop<b style="color:#F6F0E4">.</b></span><span style="flex:1;min-width:0"><b style="font-size:13px">POPING</b> <span style="font-size:11px;color:#A8A096">now</span><br><b style="font-size:14px">${esc(S.push.title)}</b><br><span style="font-size:13px;color:#E2DBD0">${esc(S.push.body)}</span></span></button>`:"");
+  if(ph!==LSH.push){ $("#lpush").innerHTML=ph; LSH.push=ph; }
+  if(keepSend){ const i=$("#sendQ"); if(i && document.activeElement!==i){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); } }
+}
+function fillSendNames(){ const sh=S.sheet; if(!sh||sh.type!=="send") return; document.querySelectorAll('[data-act="send-to"]').forEach(b=>{ const h=(sh.hits||[]).find(x=>x.id===b.dataset.v); const sp=b.querySelector(".grow"); if(h&&sp) sp.textContent=h.name||"Someone"; }); }
+
+/* ---------- motion helpers ---------- */
+const RM = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+function dropText(t){ return String(t).split("").map((c,k)=>c===" "?" ":`<span aria-hidden="true" style="--k:${k}">${esc(c)}</span>`).join(""); }
+function tickerHTML(){
+  const L=listed(), now=Date.now();
+  const live=L.filter(e=>sMs(e)<=now&&eMs(e)>now).length, tonight=L.filter(e=>inWhen(e,"today")).length, free=L.filter(e=>!(e.price>0)&&inWhen(e,"week")).length;
+  const fr=L.filter(e=>visibleHolders(e.id).some(i=>i!==S.me.id)).length, types=new Set(L.filter(e=>inWhen(e,"week")).map(e=>e.type)).size;
+  const items=[live?live+" happening right now":"", tonight?tonight+" on today":"", free?free+" free this week":"", fr?"your people are going to "+fr:"", types>2?types+" kinds of things this week":"", "all-in prices, no surprise fees", "downtown nyc"].filter(Boolean);
+  const run=items.map(x=>`<span>${esc(x)}</span>`).join("");
+  return `<div class="ticker" aria-label="${esc(items.join(". "))}"><div class="tk" aria-hidden="true">${run}${run}</div></div>`;
+}
+function burst(x,y,cols){
+  if(RM()) return; cols=cols||["#FF5FA8","#FF5B1F","#D4FF3A","#B9A6FF","#7CCBFF"];
+  for(let k=0;k<14;k++){ const d=document.createElement("span"); d.className="spk"; const a=Math.PI*2*k/14, r=40+Math.random()*40;
+    d.style.cssText=`left:${x-5}px;top:${y-5}px;background:${cols[k%cols.length]};--dx:${Math.cos(a)*r}px;--dy:${Math.sin(a)*r}px;--r:${Math.random()*360}deg`;
+    document.body.appendChild(d); setTimeout(()=>d.remove(),750); }
+}
+function flyOut(dir){
+  const t=document.querySelector(".stack .top");
+  const done=()=>{ S.flying=false; S.stack++; S.dealt=true; render(); S.dealt=false; };
+  S.flying=true;
+  if(!t||RM()){ done(); return; }
+  t.classList.add("fly"); t.style.transform=`translateX(${dir*520}px) rotate(${dir*28}deg)`; t.style.opacity="0";
+  document.querySelectorAll(".stack .back").forEach((b,k)=>{ b.style.transform=k? "rotate(-2deg) translateX(-2px)" : "rotate(2deg)"; });
+  setTimeout(done,300);
+}
+function bindStack(){
+  const t=document.querySelector(".stack .top"); if(!t) return;
+  let x0=0,y0=0,dx=0,on=false,moved=false;
+  const yes=t.querySelector(".stamp.yes"), no=t.querySelector(".stamp.no");
+  t.addEventListener("pointerdown",(e)=>{ if(e.button>0) return; on=true; moved=false; x0=e.clientX; y0=e.clientY; dx=0; t.classList.add("dragging"); });
+  t.addEventListener("pointermove",(e)=>{ if(!on) return; dx=e.clientX-x0; const dy=e.clientY-y0;
+    if(!moved && Math.abs(dx)<8) return; if(!moved && Math.abs(dy)>Math.abs(dx)){ on=false; t.classList.remove("dragging"); return; }
+    if(!moved){ moved=true; try{ t.setPointerCapture(e.pointerId); }catch(err){} }
+    t.style.transform=`translateX(${dx}px) rotate(${dx/16}deg)`;
+    if(yes) yes.style.opacity=Math.max(0,Math.min(1,dx/90)); if(no) no.style.opacity=Math.max(0,Math.min(1,-dx/90)); });
+  const end=()=>{ if(!on) return; on=false; t.classList.remove("dragging");
+    if(moved && Math.abs(dx)>90){ const id=t.dataset.id;
+      if(dx>0 && id && S.me.id && !savedIds().includes(id)){ const r=t.getBoundingClientRect(); burst(r.left+r.width/2,r.top+r.height/2); saveProfile({saved:savedIds().concat([id]).slice(-200)}); toast("Saved. It's in Tickets."); }
+      flyOut(dx>0?1:-1); }
+    else { t.style.transform=""; if(yes) yes.style.opacity=0; if(no) no.style.opacity=0; } };
+  t.addEventListener("pointerup",end); t.addEventListener("pointercancel",end);
+  t.addEventListener("dragstart",(e)=>e.preventDefault());
+  t.addEventListener("click",(e)=>{ if(moved){ e.preventDefault(); e.stopPropagation(); moved=false; } },true);
+}
+
+function paintWallet(){ const sh=S.sheet; if(!sh||sh.type!=="wallet") return; const t=S.tickets.find(x=>x.id===sh.ticketId), box=$("#wqr"); if(t&&box&&window.qrcode){ try{ const q=window.qrcode(0,"M"); q.addData("POPING:"+t.id+":"+codeFor(t.id,"s")); q.make(); box.innerHTML='<img alt="" src="'+q.createDataURL(4,0)+'" style="width:100%;height:100%;image-rendering:pixelated">'; }catch(e){} } }
+function finishAuth(){ DEMO&&DEMO.setSession({signedUp:true}); S.auth=null; go("welcome"); }
+async function doScan(){
+  const sh=S.sheet; if(!sh||sh.type!=="scan") return; const e=evById(sh.eventId); if(!e) return;
+  const t=activeTix().filter(x=>x.eventId===e.id&&(x.checkedIn||0)<(x.qty||1)).sort((a,b)=>(a.comp?1:0)-(b.comp?1:0))[0];
+  if(!t){ sh.result={ok:false,name:"Everyone's in",sub:"No tickets left to scan for this event."}; renderLayer(); return; }
+  const n=(t.checkedIn||0)+1; try{ await S.db.doc("tickets/"+t.id).update({checkedIn:n}); t.checkedIn=n; }catch(err){}
+  sh.result={ok:true,name:t.comp?(t.guestName||"Guest"):nameOf(t.holderId),sub:(t.comp?"Comp · ":"")+n+" of "+t.qty+" in · code "+codeFor(t.id,"s").slice(0,3)+" "+codeFor(t.id,"s").slice(3)};
+  if(!RM() && navigator.vibrate) try{ navigator.vibrate(30); }catch(err){}
+  renderLayer(); if(S.route==="night") render();
+}
+function myNext(){ return activeTix().filter(t=>t.holderId===S.me.id).map(t=>({t,e:evById(t.eventId)})).filter(x=>x.e&&!isOver(x.e)&&!isCancelled(x.e)).sort((a,b)=>sMs(a.e)-sMs(b.e))[0]; }
+async function demoStep(k){
+  const db=S.db, now=Date.now();
+  if(k==="signup"){ if(window.popingResetDemo) window.popingResetDemo(); return; }
+  if(k==="remind"){ const x=myNext(); if(!x){ toast("Grab a ticket first."); go("discover"); return; } pushN(x.e.name+" "+fmtWhen(x.e).toLowerCase(), "Your ticket's ready. Doors at "+(x.e.venue||"the venue")+".", "t-"+x.t.id); return; }
+  if(k==="friendbuy"){ const e=listed().find(x=>!holdersOf(x.id).includes("u_priya")&&x.price>0)||listed()[0]; if(!e) return; await db.doc("tickets/"+makeId("t")).set({eventId:e.id,holderId:"u_priya",qty:1,unit:e.price||0,total:e.price||0,via:"discover",createdAt:now,checkedIn:0,status:"active"}); pushN("Priya is going to "+e.name, fmtWhen(e)+". Want in?", "p-"+e.id); return; }
+  if(k==="door"){ const x=myNext(); if(!x){ toast("Grab a ticket first."); go("discover"); return; } await db.doc("tickets/"+x.t.id).update({checkedIn:x.t.qty}); x.t.checkedIn=x.t.qty; go("t-"+x.t.id); setTimeout(()=>{ burst(innerWidth/2,innerHeight/3,["#D4FF3A","#0F0D0C","#FF5B1F"]); pushN("You're in","Checked in at "+(x.e.venue||"the door")+". Have fun.", null); },600); return; }
+  if(k==="ended"){ const x=myNext()||activeTix().filter(t=>t.holderId===S.me.id).map(t=>({t,e:evById(t.eventId)})).find(y=>y.e); if(!x){ toast("Grab a ticket first."); go("discover"); return; } await db.doc("events/"+x.e.id).update({startsAt:new Date(now-4*HOUR).toISOString(),endsAt:new Date(now-60000).toISOString()}); pushN("How was "+x.e.name+"?","Rate it in two taps.", "rate-"+x.e.id); return; }
+  if(k==="drop"){ const wk=listed().filter(e=>inWhen(e,"weekend")); pushN("The weekend drop is here", wk.length+" things on Downtown this weekend. Fresh flyers inside.", "drops"); return; }
+  if(k==="payouts"){ go("host"); setTimeout(()=>{ S.sheet={type:"payouts",step:0}; renderLayer(); },350); return; }
+  const mine=S.events.filter(e=>e.hostId===S.me.id&&!isCancelled(e)).sort((a,b)=>Math.abs(sMs(a)-now)-Math.abs(sMs(b)-now))[0];
+  if(!mine){ toast("Post an event first."); go("create"); return; }
+  if(k==="sell"){ const q=2; await db.doc("tickets/"+makeId("t")).set({eventId:mine.id,holderId:"u_priya",qty:q,unit:mine.price||0,total:r2((mine.price||0)*q),via:"discover",createdAt:now,checkedIn:0,status:"active"}); pushN("You sold "+q+" tickets", mine.name+(mine.price>0?" · you keep "+money2(fees(mine.price).keep*q):"")+". Found you on Poping.", "h-"+mine.id); return; }
+  if(k==="scan"){ go("h-"+mine.id); setTimeout(()=>{ S.sheet={type:"scan",eventId:mine.id}; renderLayer(); setTimeout(doScan,1500); },350); return; }
+  if(k==="payout"){ await db.doc("events/"+mine.id).update({endsAt:new Date(now-60000).toISOString(),startsAt:new Date(Math.min(sMs(mine),now-3*HOUR)).toISOString()}); const paid=activeTix().filter(t=>t.eventId===mine.id&&!t.comp); const amt=paid.reduce((a,t)=>a+fees(t.unit||0).keep*(t.qty||1),0); pushN("Payout sent: "+money2(amt), mine.name+" · on its way to your bank tonight (demo).", "h-"+mine.id); return; }
+}
+window.popingDemoPanel = () => { if(!DEMO) return; S.sheet={type:"demo"}; renderLayer(); };
+
+/* ---------- render ---------- */
+function render(){
+  if(S.failed){ $("#app").innerHTML=`<div class="logo">poping<b>.</b></div><h1 class="d" style="font-size:60px;margin:0">Can't load events here.</h1><div class="muted" style="line-height:1.5">Poping needs its live database. Open this page in Claude, signed in to your organization.</div>`; $("#nav").innerHTML=""; return; }
+  if(DEMO && !DEMO.session().signedUp && !AUTH.includes(S.route)){ S.route="store"; }
+  if(DEMO && DEMO.session().signedUp && AUTH.includes(S.route)){ S.route="discover"; }
+  if(S.ok && S.me.id && S.loaded.profiles && !AUTH.includes(S.route) && !myProfile()?.onboarded && S.route!=="welcome" && !S.skipOnb){ S.route="welcome"; }
+  const V={store:vStore,splash:vSplash,signup:vSignup,otp:vOtp,about:vAbout,friends:vFriends,notifs:vNotifs,rate:vRate,discover:vDiscover,search:vSearch,event:vEvent,code:vCode,tickets:vTickets,ticket:vTicket,yay:vYay,drops:vDrops,profile:vProfile,welcome:vWelcome,help:vHelp,host:vHost,create:vCreate,edit:vCreate,live:vLive,night:vNight}[S.route]||vDiscover;
+  if(S.route==="edit" && !S.editId){ const e=evById(S.param); if(e && e.hostId===S.me.id){ S.form=formFrom(e); S.editId=e.id; } else { $("#app").innerHTML=S.loaded.events?`<a class="iconbtn" href="#host" aria-label="Back">${I.back}</a><div class="d" style="font-size:44px">Can't edit this.</div>`:'<div class="skel" style="height:300px"></div>'; $("#nav").innerHTML=navHTML(); return; } }
+  const app=$("#app"); app.innerHTML = V();
+  if(S.enter){ S.enter=false; app.classList.remove("enter"); void app.offsetWidth; app.classList.add("enter"); clearTimeout(render.t); render.t=setTimeout(()=>app.classList.remove("enter"),900); }
+  $("#nav").innerHTML = navHTML();
+  bindStack();
+  renderLayer();
+  if(S.route==="ticket") paintTicket();
+  if(S.route==="splash" && !S.splashT){ S.splashT=setTimeout(()=>{ S.splashT=null; go("signup"); },1700); }
+  if(S.route==="yay" && S.yayFired!==S.param){ S.yayFired=S.param; confetti(); }
+  resolveNames();
+}
+function softRender(){
+  if(S.flying) return;
+  if(S.route==="create"||S.route==="edit"){ if(S.route==="edit"&&!S.editId) render(); return; }
+  if(S.route==="search"){ const r=$("#results"); if(r) r.innerHTML=searchResults(); $("#nav").innerHTML=navHTML(); return; }
+  const a=document.activeElement;
+  if(a && ["doorIn","codeIn","repTxt","compName","compQty","sendQ"].includes(a.id)){ $("#nav").innerHTML=navHTML(); return; }
+  if(a && a.id==="doorQ"){ const g=$("#guestList"); if(g) refreshGuests(); return; }
+  render();
+}
+function refreshGuests(){ const e=evById(S.param); if(!e) return; const q=S.doorQ.trim().toLowerCase(); const all=activeTix().filter(t=>t.eventId===e.id); const guests=all.map(t=>({t,n:t.comp?(t.guestName||"Guest"):nameOf(t.holderId)})).filter(g=>!q||g.n.toLowerCase().includes(q)).sort((a,b)=>((a.t.checkedIn||0)>=a.t.qty)-((b.t.checkedIn||0)>=b.t.qty)||a.n.localeCompare(b.n)); $("#guestList").innerHTML=guestRows(guests); }
+let nameBusy=false;
+async function resolveNames(){
+  if(!S.user||nameBusy) return;
+  const ids=[...new Set([S.me.id,...S.tickets.map(t=>t.holderId),...S.tickets.map(t=>t.fromId),...(DEMO?["u_maya","u_jordan","u_sam","u_priya"]:[])].filter(Boolean))];
+  if(!ids.filter(id=>!(id in S.names)).length) return;
+  nameBusy=true;
+  try{ const ps=await S.user.profiles(ids); ids.forEach(id=>{ S.names[id]=ps[id]?.name||""; S.avatars[id]=ps[id]?.avatarUrl||""; }); }catch(e){}
+  nameBusy=false; softRender();
+}
+
+/* ---------- ticket code ---------- */
+let tickTimer=null;
+function paintTicket(){
+  clearInterval(tickTimer);
+  const t=S.tickets.find(x=>x.id===S.param); if(!t||t.status==="refunded") return;
+  const e=evById(t.eventId), rot=!!(e&&e.rotating); let lastW=null;
+  const paint=()=>{
+    if(S.route!=="ticket"){ clearInterval(tickTimer); return; }
+    const w=rot?win():"s", left=15-Math.floor((Date.now()/1000)%15);
+    if(w!==lastW){ lastW=w; const code=codeFor(t.id,w); const el=$("#doorCode"); if(el) el.textContent=code.slice(0,3)+" "+code.slice(3);
+      const box=$("#qr"); if(box && window.qrcode){ try{ const qr=window.qrcode(0,"M"); qr.addData("POPING:"+t.id+":"+code); qr.make(); box.innerHTML='<img alt="" src="'+qr.createDataURL(8,0)+'" style="width:100%;height:100%;image-rendering:pixelated">'; }catch(err){ box.textContent=code; } } else if(box){ box.textContent=code; } }
+    if(!rot) return;
+    const b=$("#tickBar"); if(b) b.style.width=Math.round(left/15*100)+"%";
+    const tt=$("#tickTxt"); if(tt) tt.textContent="Anti-screenshot mode · new code in "+left+"s";
+  };
+  paint(); if(rot) tickTimer=setInterval(paint,1000);
+}
+
+/* ---------- confetti ---------- */
+function confetti(){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  let c=$("#confetti"); if(!c){ c=document.createElement("canvas"); c.id="confetti"; document.body.appendChild(c); }
+  const ctx=c.getContext("2d"), W=c.width=innerWidth, H=c.height=innerHeight, cols=["#FF5FA8","#0F0D0C","#FF5B1F","#7CCBFF","#B9A6FF","#F6F0E4"];
+  const P=Array.from({length:120},()=>({x:Math.random()*W,y:-20-Math.random()*H*0.6,vx:(Math.random()-.5)*2,vy:2+Math.random()*3,r:Math.random()*6.28,vr:(Math.random()-.5)*.3,w:6+Math.random()*8,h:4+Math.random()*6,c:cols[Math.floor(Math.random()*cols.length)]}));
+  let f=0; const step=()=>{ ctx.clearRect(0,0,W,H); P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();}); if(++f<220 && S.route==="yay") requestAnimationFrame(step); else ctx.clearRect(0,0,W,H); };
+  step();
+}
+
+/* ---------- actions ---------- */
+async function saveProfile(patch){
+  if(!S.db||!S.me.id) return;
+  const next=Object.assign({},S.profiles[S.me.id]||{},patch,{updatedAt:Date.now()});
+  S.profiles[S.me.id]=next;
+  try{ await S.db.doc("profiles/"+S.me.id).set(next); }catch(e){ toast("Couldn't save. Try again."); }
+}
+async function copyText(txt){ try{ await navigator.clipboard.writeText(txt); toast("Copied. Paste it in the group chat."); }catch(e){ toast("Copy blocked here: "+txt.slice(0,70)); } }
+function inviteText(e){ return `${e.name} · ${fmtWhen(e)} · ${e.venue||""}${e.area?", "+e.area:""}\n${e.price>0?money(e.price)+" all-in":"Free"} on Poping${e.public===false?" · code "+e.code:""}`; }
+async function pay(){
+  const sh=S.sheet, e=evById(sh.eventId); if(!e||!S.db||!S.me.id) return;
+  const q=Math.min(sh.qty,8,leftOf(e));
+  if(q<1){ sh.err="Sold out while you were deciding. Join the waitlist instead."; renderLayer(); return; }
+  sh.busy=true; sh.err=""; renderLayer();
+  try{
+    const id=makeId("t"), t={eventId:e.id,holderId:S.me.id,qty:q,unit:e.price||0,total:r2((e.price||0)*q),via:sh.via||"direct",createdAt:Date.now(),checkedIn:0,status:"active",test:true};
+    await S.db.doc("tickets/"+id).set(t);
+    S.tickets.push(Object.assign({id},t));
+    const w=S.waits.find(x=>x.eventId===e.id&&x.uid===S.me.id); if(w){ try{ await S.db.doc("waitlist/"+w.id).delete(); }catch(err){} }
+    S.sheet=null; renderLayer(); go("yay-"+id);
+  }catch(err){ sh.busy=false; sh.err=(err&&err.code==="quota_exceeded")?"Poping is full right now. Tell the team.":"That didn't go through. Nothing was saved. Try again."; renderLayer(); }
+}
+async function sendTo(uid){
+  const sh=S.sheet, t=S.tickets.find(x=>x.id===sh.ticketId); if(!t||!S.db) return;
+  if(uid===S.me.id) return;
+  try{
+    const unit=t.unit||0, id=makeId("t");
+    const gift={eventId:t.eventId,holderId:uid,fromId:S.me.id,qty:1,unit,total:r2(unit),via:"gift",createdAt:Date.now(),checkedIn:0,status:"active",test:!!t.test};
+    if(t.qty>1){ await S.db.doc("tickets/"+t.id).update({qty:t.qty-1,total:r2(unit*(t.qty-1))}); }
+    else { await S.db.doc("tickets/"+t.id).update({status:"refunded",transferred:true}); }
+    await S.db.doc("tickets/"+id).set(gift);
+    const nm=(sh.hits||[]).find(h=>h.id===uid)?.name||"them";
+    S.sheet=null; renderLayer(); toast("Sent to "+nm+". It's in their Tickets."); if(t.qty<=1) go("tickets"); else render();
+  }catch(err){ sh.err="Couldn't send. Try again."; renderLayer(); }
+}
+async function createParty(){
+  const f=S.form, name=f.name.trim(), editing=!!S.editId;
+  if(!S.db||!S.me.id){ f.err="Sign in to post an event."; return render(); }
+  if(!name){ f.err="Give your event a name."; return render(); }
+  const starts=new Date(f.date+"T"+(f.time||"20:00"));
+  if(isNaN(starts.getTime())){ f.err="Pick a start date and time."; return render(); }
+  let ends=null; if(f.endDate||f.endTime){ ends=new Date((f.endDate||f.date)+"T"+(f.endTime||"23:59")); if(isNaN(ends.getTime())||ends<=starts){ f.err="End has to be after the start."; return render(); } }
+  if((ends?ends.getTime():starts.getTime()+6*HOUR)<Date.now()){ f.err="That date has passed."; return render(); }
+  const listen=f.listenUrl.trim(); if(listen && !safeUrl(listen)){ f.err="The link should start with https://"; return render(); }
+  const price=Math.max(0,Math.min(500,Math.round(Number(f.price)||0))), cap=Math.max(1,Math.min(5000,Math.round(Number(f.capacity)||100)));
+  const prev=editing?evById(S.editId):null;
+  if(f.banBusy){ f.err="Hang on, your image is still uploading."; return render(); }
+  if(prev && cap<soldOf(prev.id)){ f.err="Capacity can't go below the "+soldOf(prev.id)+" people already going."; return render(); }
+  const code = f.public ? "" : (prev&&prev.code) || ((name.replace(/[^A-Za-z]/g,"").slice(0,4).toUpperCase()||"EVNT") + String(Math.floor(10+Math.random()*90)));
+  const ev={name,hostName:(f.hostName||"").trim()||S.me.name||"Organizer",hostId:S.me.id,type:f.type,sound:f.type==="party"?f.sound:"",startsAt:starts.toISOString(),endsAt:ends?ends.toISOString():"",hours:(f.hours||"").trim(),venue:f.venue.trim(),address:f.address.trim(),area:f.area.trim(),age:f.age,price,capacity:cap,color:f.color,deco:f.deco,public:!!f.public,rotating:!!f.rotating,code,lineup:f.lineup.trim(),listenUrl:listen,dress:f.dress.trim(),door:f.door.trim(),blurb:f.blurb.trim(),status:"live",createdAt:prev?prev.createdAt:Date.now(),updatedAt:Date.now()};
+  try{
+    const id=editing?S.editId:makeId("e");
+    if(editing){ const keep={verified:prev.verified||false}; await S.db.doc("events/"+id).set(Object.assign({},ev,keep)); const i=S.events.findIndex(x=>x.id===id); if(i>=0) S.events[i]=Object.assign({id},ev,keep); }
+    else { await S.db.doc("events/"+id).set(ev); S.events.push(Object.assign({id},ev)); }
+    let banFail=false;
+    if(f.banChanged){ try{ if(f.banner){ const b={src:f.banner,eventId:id,by:S.me.id,at:Date.now()}; await S.db.doc("banners/"+id).set(b); S.banners[id]=b; } else if(S.banners[id]){ await S.db.doc("banners/"+id).delete(); delete S.banners[id]; } }catch(err){ banFail=true; } }
+    if(banFail) setTimeout(()=>toast("Event saved, but the image didn't upload. Try a smaller one from Edit."),300);
+    S.form=null; const wasEdit=editing; S.editId=null; if(wasEdit){ toast("Saved. Guests see the update."); go("h-"+id); } else go("live-"+id);
+  }catch(err){ f.err="Couldn't save. Try again."; render(); }
+}
+async function letIn(t,how){
+  const done=t.checkedIn||0;
+  if(done>=t.qty){ S.doorMsg={ok:false,text:`Already used: ${t.comp?t.guestName:nameOf(t.holderId)} is fully checked in (${done}/${t.qty}). If this isn't them, it's a copied ticket.`}; return render(); }
+  try{ await S.db.doc("tickets/"+t.id).update({checkedIn:done+1}); t.checkedIn=done+1; S.doorMsg={ok:true,text:`Let them in: ${t.comp?t.guestName:nameOf(t.holderId)}, ${done+1} of ${t.qty}${how==="name"?" (check ID)":""}.`}; }
+  catch(err){ S.doorMsg={ok:false,text:"Couldn't save the check-in. Try again."}; }
+  render();
+}
+function checkDoor(raw){
+  const e=evById(S.param); if(!e) return;
+  let code=String(raw||"").toUpperCase().replace(/\s+/g,""), tid=null;
+  const m=code.match(/^POPING:([^:]+):([A-Z0-9]{6})$/i); if(m){ tid=m[1]; code=m[2].toUpperCase(); }
+  const w=win(), wins=e.rotating?[w,w-1,w-2,w-3]:["s"];
+  const hit=activeTix().filter(t=>t.eventId===e.id&&(!tid||t.id===tid)).find(t=>wins.some(x=>codeFor(t.id,x)===code));
+  if(!hit){ S.doorMsg={ok:false,text:"No match. Ask for their name and search the guest list below."}; return render(); }
+  letIn(hit,"code");
+}
+
+document.addEventListener("click",(ev)=>{
+  const viaEl=ev.target.closest("[data-via]"); if(viaEl && viaEl.dataset.via) S.via=viaEl.dataset.via;
+  const el=ev.target.closest("[data-act]"); if(!el) return;
+  const a=el.dataset.act, v=el.dataset.v;
+  if(a==="sheet-close-bg"){ if(ev.target.closest("[data-stop]")) return; S.sheet=null; renderLayer(); return; }
+  if(a==="sheet-close"){ S.sheet=null; renderLayer(); return; }
+  if(a==="when"){ S.when=v; S.stack=0; if(S.route!=="discover") go("discover"); else render(); return; }
+  if(a==="type"){ S.type=v; S.sound="All"; S.stack=0; render(); return; }
+  if(a==="pick-type"){ S.type=v; S.when="week"; S.stack=0; go("discover"); return; }
+  if(a==="sound"){ S.sound=v; S.stack=0; render(); return; }
+  if(a==="next"){ flyOut(-1); return; }
+  if(a==="follow"){ if(!S.me.id) return toast("Sign in to follow organizers."); const f=following(), on=f.includes(v); saveProfile({following:on?f.filter(x=>x!==v):f.concat([v])}).then(()=>softRender()); toast(on?"Unfollowed.":"Following. Their new events land in Drops."); softRender(); return; }
+  if(a==="buy"){ S.sheet={type:"buy",eventId:v,qty:1,via:S.via||"direct"}; renderLayer(); return; }
+  if(a==="wait"){ if(!S.me.id) return toast("Sign in to join the waitlist."); const w=S.waits.find(x=>x.eventId===v&&x.uid===S.me.id); if(w){ S.db.doc("waitlist/"+w.id).delete().then(()=>toast("Left the waitlist.")); } else { const id=v+"__"+S.me.id.replace(/[^A-Za-z0-9_\-.~:@+]/g,""); S.db.doc("waitlist/"+id).set({eventId:v,uid:S.me.id,at:Date.now()}).then(()=>toast("You're on the waitlist. Spots show up in Drops.")); } return; }
+  if(a==="qty"){ S.sheet.qty=Math.max(1,Math.min(8,S.sheet.qty+Number(v))); renderLayer(); return; }
+  if(a==="pay"){ pay(); return; }
+  if(a==="share"){ const e=evById(v); if(e) copyText(inviteText(e)); return; }
+  if(a==="send"||a==="send-from-cant"){ S.sheet={type:"send",ticketId:v,q:"",hits:[]}; renderLayer(); setTimeout(()=>{const i=$("#sendQ"); if(i) i.focus();},50); return; }
+  if(a==="send-to"){ sendTo(v); return; }
+  if(a==="cantgo"){ S.sheet={type:"cantgo",ticketId:v}; renderLayer(); return; }
+  if(a==="release"){ const t=S.tickets.find(x=>x.id===v); if(!t) return; S.db.doc("tickets/"+v).update({status:"refunded",refundedAt:Date.now()}).then(()=>{ t.status="refunded"; S.sheet=null; renderLayer(); toast(t.total>0?"Released and refunded (test mode).":"Spot released."); go("tickets"); }).catch(()=>toast("Couldn't release. Try again.")); return; }
+  if(a==="cancel-ask"){ S.sheet={type:"cancel",eventId:v}; renderLayer(); return; }
+  if(a==="cancel-do"){ S.db.doc("events/"+v).update({status:"cancelled",updatedAt:Date.now()}).then(()=>{ const e=evById(v); if(e) e.status="cancelled"; S.sheet=null; renderLayer(); toast("Event cancelled. Guests see it in their tickets."); render(); }).catch(()=>toast("Couldn't cancel. Try again.")); return; }
+  if(a==="letin"){ const t=S.tickets.find(x=>x.id===v); if(t) letIn(t,"name"); return; }
+  if(a==="report"){ go("help"); return; }
+  if(a==="mytab"){ S.myTab=v; render(); return; }
+  if(a==="hosttab"){ S.hostTab=v; render(); return; }
+  if(a==="vis"){ saveProfile({visibility:v}).then(softRender); render(); return; }
+  if(a==="onb-next"){ if(S.onb.step===1 && S.onb.types.length<2) return; S.onb.step++; render(); return; }
+  if(a==="onb-type"){ const s=S.onb.types; S.onb.types=s.includes(v)?s.filter(x=>x!==v):s.concat([v]); render(); return; }
+  if(a==="onb-vis"){ S.onb.vis=v; render(); return; }
+  if(a==="onb-done"){ saveProfile({types:S.onb.types,visibility:S.onb.vis,onboarded:true,following:following(),saved:savedIds()}); S.onb={step:0,types:[],vis:"everyone"}; go("discover"); if(DEMO&&!DEMO.session().welcomed){ DEMO.setSession({welcomed:true}); setTimeout(()=>{ const e=listed().find(x=>visibleHolders(x.id).some(i=>i!==S.me.id)); if(e) pushN(nameOf(visibleHolders(e.id).find(i=>i!==S.me.id)).split(" ")[0]+" is going to "+e.name, fmtWhen(e)+". Tap to see who else.", "p-"+e.id); },3500); } return; }
+  if(a==="onb-skip"){ S.skipOnb=true; if(S.me.id) saveProfile({onboarded:true,types:[],visibility:"everyone",following:[]}); go("discover"); return; }
+  if(a==="ftype"){ S.form.type=v; if(!S.form.colorTouched) S.form.color=typeOf(v).c; render(); return; }
+  if(a==="fcolor"){ S.form.color=v; S.form.colorTouched=true; const p=$("#preview"); if(p) p.innerHTML=previewHTML(); document.querySelectorAll('[data-act="fcolor"]').forEach(b=>{const on=b.dataset.v===v;b.setAttribute("aria-pressed",on);b.style.border=on?"3px solid var(--fg)":"2px solid var(--night)";}); return; }
+  if(a==="fdeco"){ S.form.deco=v; const p=$("#preview"); if(p) p.innerHTML=previewHTML(); document.querySelectorAll('[data-act="fdeco"]').forEach(b=>b.classList.toggle("on",b.dataset.v===v)); return; }
+  if(a==="push"){ const p=S.push; S.push=null; renderLayer(); if(p){ if(p.fill && S.route==="otp"){ const i=$("#otpIn"); if(i){ i.value=p.fill; i.dispatchEvent(new Event("input",{bubbles:true})); } } else if(p.href) go(p.href); } return; }
+  if(a==="install"){ S.inst=1; render(); const iv=setInterval(()=>{ S.inst=Math.min(100,S.inst+4+Math.floor(Math.random()*7)); if(S.inst>=100) clearInterval(iv); if(S.route==="store") render(); },90); return; }
+  if(a==="openapp"){ go("splash"); return; }
+  if(a==="resend"){ const a2=S.auth||(S.auth={}); a2.code=String(100000+Math.floor(Math.random()*900000)); a2.bad=false; render(); setTimeout(()=>pushN("Your Poping code is "+a2.code,"It expires in 10 minutes. Tap to fill it in.",null,a2.code),700); return; }
+  if(a==="perm"){ S.sheet={type:"perm",kind:v}; renderLayer(); return; }
+  if(a==="perm-yes"||a==="perm-no"){ const k=S.sheet&&S.sheet.kind, yes=a==="perm-yes"; S.sheet=null; renderLayer();
+    if(k==="contacts"){ S.auth=S.auth||{}; if(yes){ S.auth.contacts=true; render(); } else go("notifs"); }
+    if(k==="notifs"){ DEMO&&DEMO.setSession({notifs:yes}); finishAuth(); } return; }
+  if(a==="auth-next"){ go(v); return; }
+  if(a==="auth-done"){ DEMO&&DEMO.setSession({notifs:false}); finishAuth(); return; }
+  if(a==="wallet"){ S.sheet={type:"wallet",ticketId:v}; renderLayer(); return; }
+  if(a==="payouts"){ S.sheet={type:"payouts",step:0}; renderLayer(); return; }
+  if(a==="payout-go"){ const sh=S.sheet; sh.busy=true; renderLayer(); setTimeout(()=>{ sh.busy=false; sh.step=Math.min(3,(sh.step||0)+(sh.step===1?2:1)); if(sh.step>=3){ DEMO&&DEMO.setSession({payouts:true}); render(); toast("Payouts ready. Same night from your 2nd event."); } renderLayer(); },900); return; }
+  if(a==="scan"){ S.sheet={type:"scan",eventId:v}; renderLayer(); setTimeout(doScan,1500); return; }
+  if(a==="scan-next"){ S.sheet.result=null; renderLayer(); setTimeout(doScan,1300); return; }
+  if(a==="rate"){ S.rate.score=Number(v); render(); return; }
+  if(a==="ratetag"){ const T=S.rate.tags; S.rate.tags=T.includes(v)?T.filter(x=>x!==v):T.concat([v]); render(); return; }
+  if(a==="rate-send"){ const R=S.rate; if(S.db&&R&&R.score){ S.db.doc("ratings/"+makeId("r")).set({eventId:R.eid,by:S.me.id,score:R.score,tags:R.tags,at:Date.now()}).catch(()=>{}); } S.rate=null; burst(innerWidth/2,innerHeight/2); toast("Thanks. Their next one lands in your Drops."); go("discover"); return; }
+  if(a==="demo-step"){ S.sheet=null; renderLayer(); demoStep(v); return; }
+  if(a==="fextras"){ const d=el.closest("details"); if(d&&S.form) S.form.extrasOpen=!d.open; return; }
+  if(a==="free"){ S.free=!S.free; S.stack=0; render(); return; }
+  if(a==="save"){ if(!S.me.id) return toast("Sign in to save events."); const sv=savedIds(), on=sv.includes(v); if(!on){ const r=el.getBoundingClientRect(); burst(r.left+r.width/2,r.top+r.height/2); } saveProfile({saved:on?sv.filter(x=>x!==v):sv.concat([v]).slice(-200)}).then(()=>softRender()); toast(on?"Removed from Saved.":"Saved to Tickets. We'll remind you."); render(); const hb=document.querySelector('.heartbtn[data-v="'+v+'"]')||document.querySelector('[data-act="save"][data-v="'+v+'"]'); if(hb&&!on){ hb.classList.add("popd"); } return; }
+  if(a==="fban-rm"){ S.form.banner=""; S.form.banChanged=true; S.form.banErr=""; render(); return; }
+  if(a==="theme"){ try{ localStorage.setItem("poping.theme",v); }catch(e){} applyTheme(); render(); return; }
+  if(a==="fpub"){ S.form.public=v==="1"; render(); return; }
+  if(a==="frot"){ S.form.rotating=!S.form.rotating; render(); return; }
+});
+let sendTimer=null;
+document.addEventListener("input",(ev)=>{
+  const t=ev.target;
+  if(t.id==="otpIn"){ const d=t.value.replace(/\D/g,"").slice(0,6); if(t.value!==d) t.value=d; if(d.length===6){ const a2=S.auth||{}; if(d===a2.code){ a2.bad=false; S.push=null; renderLayer(); toast("Verified."); go("about"); } else { a2.bad=true; render(); const i=$("#otpIn"); if(i){ i.focus(); } } } return; }
+  if(t.id==="q"){ S.q=t.value; $("#results").innerHTML=searchResults(); return; }
+  if(t.id==="doorQ"){ S.doorQ=t.value; refreshGuests(); return; }
+  if(t.id==="sendQ" && S.sheet){ S.sheet.q=t.value; S.sheet.loading=true; const h=$("#sendHits"); if(h) h.innerHTML=sendHits(); clearTimeout(sendTimer);
+    sendTimer=setTimeout(async()=>{ if(!S.user||!S.sheet) return; const q=S.sheet.q; const hits=q.trim()?await S.user.search(q):[]; if(!S.sheet||S.sheet.q!==q) return; S.sheet.hits=hits; S.sheet.loading=false; const hh=$("#sendHits"); if(hh){ hh.innerHTML=sendHits(); fillSendNames(); } },250); return; }
+  if(t.dataset && t.dataset.f && S.form){ S.form[t.dataset.f]=t.value; if(t.dataset.f==="name"){ const p=$("#preview"); if(p) p.innerHTML=previewHTML(); } if(["price","capacity"].includes(t.dataset.f)){ const fe=$("#fees"); if(fe) fe.innerHTML=feeHTML(); } }
+});
+document.addEventListener("change",(ev)=>{ const t=ev.target;
+  if(t.id==="fBanner" && S.form){ const file=t.files&&t.files[0]; if(!file) return; const f=S.form; f.banBusy=true; f.banErr=""; render();
+    readBanner(file).then(src=>{ f.banner=src; f.banChanged=true; }).catch(err=>{ f.banErr = err&&err.message==="big" ? "That image is too big even after shrinking. Try a smaller one." : "Couldn't read that file. Try a JPG or PNG."; }).finally(()=>{ f.banBusy=false; if(S.form===f) render(); });
+    return; }
+  if(t.dataset&&t.dataset.f&&S.form) S.form[t.dataset.f]=t.value; });
+/* Forms are handled in script, not by native submission: sandboxed frames may block form submit events. */
+async function handleForm(f){
+  if(f.id==="createForm"){ createParty(); return; }
+  if(f.id==="doorForm"){ checkDoor($("#doorIn").value); return; }
+  if(f.id==="compForm"){ const n=$("#compName").value.trim(), q=Math.max(1,Math.min(10,Number($("#compQty").value)||1)); if(!n) return; const id=makeId("t"); try{ await S.db.doc("tickets/"+id).set({eventId:S.param,holderId:null,guestName:n,comp:true,qty:q,unit:0,total:0,via:"comp",createdAt:Date.now(),checkedIn:0,status:"active"}); toast("Added "+n+" to the guest list."); }catch(e){ toast("Couldn't add. Try again."); } return; }
+  if(f.id==="phoneForm"){ const raw=$("#phIn").value, dg=raw.replace(/\D/g,"").replace(/^1(?=\d{10}$)/,""); S.auth=S.auth||{}; S.auth.phone=raw;
+    if(dg.length!==10){ S.auth.err="Enter a 10-digit US number."; render(); return; }
+    S.auth.err=""; S.auth.phone="("+dg.slice(0,3)+") "+dg.slice(3,6)+"-"+dg.slice(6); S.auth.code=String(100000+Math.floor(Math.random()*900000)); S.auth.bad=false; go("otp");
+    setTimeout(()=>{ pushN("Your Poping code is "+S.auth.code,"It expires in 10 minutes. Tap to fill it in.",null,S.auth.code); const i=$("#otpIn"); if(i) i.focus(); },900); return; }
+  if(f.id==="aboutForm"){ const fn=$("#fnIn").value.trim(), ln=$("#lnIn").value.trim(), dob=$("#dobIn").value; S.auth=Object.assign(S.auth||{},{first:fn,last:ln,dob});
+    if(!fn){ S.auth.err="Add your first name."; render(); return; }
+    const d=new Date(dob+"T12:00"); if(!dob||isNaN(d)){ S.auth.err="Add your birthday."; render(); return; }
+    const age=(Date.now()-d.getTime())/(365.25*864e5); if(age<18){ S.auth.err="Poping is for people 18 and over."; render(); return; }
+    const name=(fn+" "+ln).trim(); DEMO&&DEMO.setSession({name,phone:S.auth.phone}); S.me.name=name; if(S.me.id){ S.names[S.me.id]=name; } go("friends"); return; }
+  if(f.id==="codeForm"){ const c=$("#codeIn").value.trim().toUpperCase().replace(/\s+/g,""); const e=S.events.find(x=>x.public===false&&!isCancelled(x)&&String(x.code||"").toUpperCase()===c&&!isOver(x)); if(e){ S.via="code"; go("p-"+e.id); } else { $("#codeErr").textContent=c?"That code didn't open anything. Check the invite for typos.":"Type the code from your invite."; } return; }
+  if(f.id==="reportForm"){ const txt=$("#repTxt").value.trim(); if(!txt) return; try{ await S.db.collection("reports").add({text:txt.slice(0,1000),by:S.me.id,at:Date.now()}); $("#repTxt").value=""; toast("Report sent. We'll look within the hour."); }catch(e){ toast("Couldn't send. Try again."); } return; }
+}
+document.addEventListener("submit",(ev)=>{ ev.preventDefault(); handleForm(ev.target); });
+document.addEventListener("click",(ev)=>{ const sb=ev.target.closest('form button[type="submit"]'); if(!sb) return; ev.preventDefault(); handleForm(sb.form); },true);
+document.addEventListener("keydown",(ev)=>{ if(ev.key==="Escape" && S.sheet){ S.sheet=null; renderLayer(); return; }
+  if(ev.key==="Enter" && !ev.isComposing){ const t=ev.target; if(t && t.form && t.tagName==="INPUT" && !["checkbox","radio","file"].includes(t.type)){ ev.preventDefault(); handleForm(t.form); } } });
+
+/* ---------- boot ---------- */
+async function boot(){
+  applyTheme(); setInterval(applyTheme,60000);
+  route();
+  if(!RT || typeof RT.use!=="function"){ S.failed=true; render(); return; }
+  const [db,user]=await Promise.all([RT.use("db"),RT.use("user")]);
+  if(!db){ S.failed=true; render(); return; }
+  S.db=db; S.user=user; S.ok=true;
+  try{ const me=user?await user.me():null; if(me){ S.me={id:me.id,name:me.name||""}; if(me.id){ S.names[me.id]=me.name||""; S.avatars[me.id]=me.avatarUrl||""; } } }catch(e){}
+  const onErr=()=>toast("Live updates paused. Reopen to refresh.");
+  db.collection("events").limit(800).onSnapshot((s)=>{ S.events=s.docs.map(d=>Object.assign({id:d.id},d.data())); S.loaded.events=true; softRender(); }, onErr);
+  db.collection("tickets").limit(1000).onSnapshot((s)=>{ S.tickets=s.docs.map(d=>Object.assign({id:d.id},d.data())); S.loaded.tickets=true; softRender(); }, onErr);
+  db.collection("profiles").limit(1000).onSnapshot((s)=>{ const p={}; s.docs.forEach(d=>p[d.id]=d.data()); S.profiles=p; S.loaded.profiles=true; softRender(); }, onErr);
+  db.collection("banners").limit(400).onSnapshot((s)=>{ const b={}; s.docs.forEach(d=>b[d.id]=d.data()); S.banners=b; softRender(); }, onErr);
+  db.collection("waitlist").limit(1000).onSnapshot((s)=>{ S.waits=s.docs.map(d=>Object.assign({id:d.id},d.data())); softRender(); }, onErr);
+}
+boot();
+})();
+</script>
+
+</body></html>
